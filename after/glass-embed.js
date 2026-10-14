@@ -6937,10 +6937,10 @@ var il = (e) => (typeof e == "object" && e && Object.values(Object.freeze(e)).fo
 	speed: 1,
 	background: 0
 }, $ = {
-	ox: 0,
+	ox: -.1,
 	oy: 0,
-	spin: 1,
-	wobble: 1
+	spin: 2.2,
+	wobble: 2.25
 };
 function ol(e, t, n) {
 	let r = e[0] * Math.cos(t) + e[2] * Math.sin(t), i = -e[0] * Math.sin(t) + e[2] * Math.cos(t);
@@ -7190,11 +7190,11 @@ var ll = class {
 async function ul(e) {
 	let t = new ll(e, () => {}, () => {}, !1);
 	if (await t.start(), !t.state.ready) throw Error("renderer not ready");
-	t.setMaterial("speed", 1.3);
+	t.setMaterial("speed", 1.3), t.setMaterial("iridescence", .77), t.setMaterial("thickness", .94), t.setZoomTarget(1.26);
 	let n = matchMedia("(prefers-reduced-motion: reduce)"), r = {
 		renderer: t,
 		tune: $,
-		parallax: 1
+		parallax: 2.8
 	};
 	window.__dvGlass = r;
 	let i = 0;
