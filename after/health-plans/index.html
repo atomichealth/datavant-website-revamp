@@ -937,7 +937,7 @@ aside.pre-header:hover .dv-ph-switch,.dv-ph-switch:hover{opacity:1;visibility:vi
   try {
     if (!navigator.gpu) throw new Error('no webgpu');
     canvas.classList.add('is-live');
-    var mod = await import(location.origin + '/after/health-plans/spring-embed.js');
+    var mod = await import((location.origin + location.pathname.split('/after/')[0]) + '/after/health-plans/spring-embed.js');
     await mod.mountGlass(canvas);
     if (section) section.classList.add('dv-spring-live');
   } catch (e) {
