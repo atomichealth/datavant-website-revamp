@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Datavant Revamp — Before / After</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,100..1000&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0b1220;--brand:#475ff2;--cyan:#14e7e8;--line:#e5e5e5;--bg:#f4f4f6}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--ink);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+.topbar{display:none;align-items:center;gap:20px;padding:12px 20px;background:#fff;border-bottom:1px solid var(--line);flex-wrap:wrap;z-index:10}
+.topbar.open{display:flex}
+.options-btn{position:fixed;top:12px;right:12px;z-index:30;border:1px solid var(--line);background:rgba(255,255,255,.92);backdrop-filter:blur(6px);font:inherit;font-size:12.5px;font-weight:600;color:#555;padding:7px 14px;border-radius:999px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.08);opacity:.55;transition:opacity .2s}
+.options-btn:hover,.options-btn.active{opacity:1;border-color:var(--brand);color:var(--brand)}
+.topbar h1{font-size:15px;font-weight:700;letter-spacing:-.01em}
+.topbar h1 span{color:var(--brand)}
+.modes{display:flex;background:var(--bg);border-radius:999px;padding:4px;gap:2px}
+.modes button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:600;padding:7px 16px;border-radius:999px;cursor:pointer;color:#555;transition:all .2s}
+.modes button.active{background:var(--ink);color:#fff}
+.chk{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:500;color:#555;cursor:pointer;user-select:none}
+.spacer{flex:1}
+.notes-btn{border:1.5px solid var(--line);background:#fff;font:inherit;font-size:13px;font-weight:600;padding:7px 16px;border-radius:999px;cursor:pointer}
+.notes-btn:hover{border-color:var(--brand);color:var(--brand)}
+
+.stage{flex:1;position:relative;display:flex;min-height:0}
+.pane{flex:1;position:relative;min-width:0}
+.pane iframe{width:100%;height:100%;border:0;background:#fff}
+.divider-v{width:6px;background:var(--ink);cursor:default}
+
+/* ---- slider mode ---- */
+.stage.slider .pane{position:absolute;inset:0;flex:none}
+.stage.slider #paneAfter{clip-path:inset(0 calc(100% - var(--x,50%)) 0 0);z-index:2}
+.stage.slider .divider-v{display:none}
+.handle{display:none;position:absolute;top:0;bottom:0;left:var(--x,50%);width:0;z-index:6;cursor:ew-resize}
+.handle::before{content:"";position:absolute;top:0;bottom:0;left:-2px;width:4px;background:var(--ink)}
+.handle .grip{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;background:var(--ink);color:var(--cyan);display:grid;place-items:center;font-size:15px;font-weight:700;box-shadow:0 4px 16px rgba(0,0,0,.35);letter-spacing:-1px}
+.stage.slider .handle{display:block}
+
+/* ---- toggle mode ---- */
+.stage.toggle .pane{position:absolute;inset:0;flex:none;transition:opacity .35s ease}
+.stage.toggle .divider-v{display:none}
+.stage.toggle.show-before #paneAfter{opacity:0;pointer-events:none}
+.stage.toggle.show-after #paneBefore{opacity:0;pointer-events:none}
+.ba-switch{display:none;background:var(--bg);border-radius:999px;padding:4px;gap:2px}
+.ba-switch.visible{display:flex}
+.ba-switch button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:600;padding:7px 16px;border-radius:999px;cursor:pointer;color:#555;transition:all .2s}
+.ba-switch button.active{background:var(--brand);color:#fff}
+
+/* ---- notes drawer ---- */
+.drawer{position:absolute;top:0;right:0;bottom:0;width:380px;max-width:90vw;background:#fff;border-left:1px solid var(--line);box-shadow:-12px 0 40px rgba(0,0,0,.08);transform:translateX(105%);transition:transform .3s ease;z-index:20;overflow-y:auto;padding:24px}
+.drawer.open{transform:none}
+.drawer h2{font-size:16px;margin-bottom:4px}
+.drawer .sub{font-size:12.5px;color:#777;margin-bottom:18px}
+.drawer ol{list-style:none;display:grid;gap:12px}
+.drawer li{border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:13px;line-height:1.5;color:#444}
+.drawer li strong{display:block;color:var(--ink);font-size:13.5px;margin-bottom:2px}
+.drawer li strong::before{content:"✦ ";color:var(--brand)}
+.drawer .close{position:absolute;top:16px;right:16px;border:0;background:var(--bg);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:14px}
+iframe{pointer-events:auto}
+.stage.dragging iframe{pointer-events:none}
+</style>
+</head>
+<body>
+
+<button class="options-btn" id="optionsBtn">⚙ Opciones</button>
+
+<div class="topbar" id="topbar">
+  <h1>Datavant <span>Website Revamp</span> · Before / After</h1>
+  <div class="modes" id="modes">
+    <button data-mode="side" class="active">Lado a lado</button>
+    <button data-mode="slider">Slider</button>
+    <button data-mode="toggle">Toggle</button>
+  </div>
+  <div class="ba-switch" id="baSwitch">
+    <button data-view="before">Before</button>
+    <button data-view="after" class="active">After</button>
+  </div>
+  <label class="chk"><input type="checkbox" id="sync" checked> Scroll sincronizado</label>
+  <div class="spacer"></div>
+  <button class="notes-btn" id="notesBtn">✦ Mejoras aplicadas</button>
+</div>
+
+<div class="stage side" id="stage">
+  <div class="pane" id="paneBefore">
+    <iframe id="ifBefore" src="../before/index.html"></iframe>
+  </div>
+  <div class="divider-v"></div>
+  <div class="pane" id="paneAfter">
+    <iframe id="ifAfter" src="../after/index.html"></iframe>
+  </div>
+  <div class="handle" id="handle"><span class="grip">⟷</span></div>
+
+  <aside class="drawer" id="drawer">
+    <button class="close" id="drawerClose">✕</button>
+    <h2>Mejoras UI/UX aplicadas</h2>
+    <p class="sub">Mismo contenido y marca — mejor jerarquía, ritmo y consistencia.</p>
+    <ol>
+      <li><strong>Contenido 1:1</strong>Mismos textos, nav, secciones, recursos y footer que el sitio live — solo cambia la presentación: jerarquía, color, espaciado y micro-interacciones.</li>
+      <li><strong>Jerarquía tipográfica</strong>Escala consistente (display → h2 → h3 → lede) con un solo patrón de sección: eyebrow + título + lede. El original mezcla múltiples H1 y tamaños dispares.</li>
+      <li><strong>CTAs con jerarquía</strong>"Learn More" como acción primaria y "Contact Us" como secundaria en el hero; el CTA cian de marca reservado para la barra de navegación y el banner final.</li>
+      <li><strong>Color con intención</strong>El cian #14e7e8 y azul #475ff2 de la marca se reservan para acentos y acciones; navy para secciones de énfasis. Menos ruido, más contraste jerárquico.</li>
+      <li><strong>Logos: marquee limpio</strong>Carrusel infinito en escala de grises con hover a color. Bug corregido: el sitio live muestra el placeholder "Add a short supporting paragraph here".</li>
+      <li><strong>Who We Serve en navy</strong>Las 5 audiencias en cards uniformes con iconos, misma altura y affordance "Read more" consistente — el original mezcla layouts.</li>
+      <li><strong>Stats como módulo propio</strong>Cifras en gradiente de marca sobre cards blancas; antes competían visualmente con el bloque de features de AI.</li>
+      <li><strong>Grid de productos uniforme</strong>6 cards con tags de categoría, misma estructura y hover elevación; el arrow-link señala interactividad.</li>
+      <li><strong>Recursos escaneables</strong>Cards con categoría + fecha visibles primero, títulos truncables y extractos cortos en lugar de párrafos largos.</li>
+      <li><strong>Ritmo de espaciado</strong>Sistema 8pt: secciones a 104px, gaps de 22-24px, radios de 16px en todos los módulos.</li>
+      <li><strong>Micro-interacciones</strong>Reveal-on-scroll sutil, hover lift en cards y flechas animadas en links — feedback sin distracción.</li>
+    </ol>
+  </aside>
+</div>
+
+<script>
+const topbar = document.getElementById('topbar');
+const optionsBtn = document.getElementById('optionsBtn');
+optionsBtn.addEventListener('click', () => {
+  const open = topbar.classList.toggle('open');
+  optionsBtn.classList.toggle('active', open);
+});
+
+const stage = document.getElementById('stage');
+const modes = document.getElementById('modes');
+const handle = document.getElementById('handle');
+const baSwitch = document.getElementById('baSwitch');
+const ifB = document.getElementById('ifBefore');
+const ifA = document.getElementById('ifAfter');
+
+let mode = 'side';
+modes.addEventListener('click', e => {
+  const btn = e.target.closest('button'); if (!btn) return;
+  mode = btn.dataset.mode;
+  modes.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+  stage.className = 'stage ' + mode + (mode === 'toggle' ? ' show-after' : '');
+  baSwitch.classList.toggle('visible', mode === 'toggle');
+  if (mode === 'toggle') setView('after');
+});
+
+// ---- slider drag ----
+let dragging = false;
+const setX = clientX => {
+  const r = stage.getBoundingClientRect();
+  const pct = Math.min(98, Math.max(2, (clientX - r.left) / r.width * 100));
+  stage.style.setProperty('--x', pct + '%');
+  handle.style.left = pct + '%';
+};
+handle.addEventListener('pointerdown', e => {
+  dragging = true; stage.classList.add('dragging');
+  handle.setPointerCapture(e.pointerId);
+});
+window.addEventListener('pointermove', e => { if (dragging) setX(e.clientX); });
+window.addEventListener('pointerup', () => { dragging = false; stage.classList.remove('dragging'); });
+
+// ---- before/after switch (top bar) ----
+function setView(view) {
+  stage.classList.toggle('show-after', view === 'after');
+  stage.classList.toggle('show-before', view === 'before');
+  baSwitch.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+}
+baSwitch.addEventListener('click', e => {
+  const btn = e.target.closest('button'); if (!btn) return;
+  setView(btn.dataset.view);
+});
+
+// ---- synced proportional scroll (same-origin iframes) ----
+const sync = document.getElementById('sync');
+let lock = false;
+function wire(srcFrame, dstFrame) {
+  srcFrame.addEventListener('load', () => {
+    const w = srcFrame.contentWindow;
+    w.addEventListener('scroll', () => {
+      if (!sync.checked || lock) return;
+      lock = true;
+      const sd = w.document.documentElement;
+      const ratio = w.scrollY / Math.max(1, sd.scrollHeight - w.innerHeight);
+      const dw = dstFrame.contentWindow;
+      const dd = dw.document.documentElement;
+      dw.scrollTo(0, ratio * (dd.scrollHeight - dw.innerHeight));
+      requestAnimationFrame(() => lock = false);
+    }, { passive: true });
+  });
+}
+wire(ifB, ifA); wire(ifA, ifB);
+
+// ---- notes drawer ----
+const drawer = document.getElementById('drawer');
+document.getElementById('notesBtn').addEventListener('click', () => drawer.classList.toggle('open'));
+document.getElementById('drawerClose').addEventListener('click', () => drawer.classList.remove('open'));
+</script>
+</body>
+</html>
