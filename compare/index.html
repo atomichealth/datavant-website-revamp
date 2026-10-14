@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -64,12 +64,12 @@ iframe{pointer-events:auto}
 </head>
 <body>
 
-<button class="options-btn" id="optionsBtn">⚙ Opciones</button>
+<button class="options-btn" id="optionsBtn">⚙ Options</button>
 
 <div class="topbar" id="topbar">
   <h1>Datavant <span>Website Revamp</span> · Before / After</h1>
   <div class="modes" id="modes">
-    <button data-mode="side" class="active">Lado a lado</button>
+    <button data-mode="side" class="active">Side by side</button>
     <button data-mode="slider">Slider</button>
     <button data-mode="toggle">Toggle</button>
   </div>
@@ -77,9 +77,9 @@ iframe{pointer-events:auto}
     <button data-view="before">Before</button>
     <button data-view="after" class="active">After</button>
   </div>
-  <label class="chk"><input type="checkbox" id="sync" checked> Scroll sincronizado</label>
+  <label class="chk"><input type="checkbox" id="sync" checked> Synced scroll</label>
   <div class="spacer"></div>
-  <button class="notes-btn" id="notesBtn">✦ Mejoras aplicadas</button>
+  <button class="notes-btn" id="notesBtn">✦ Applied improvements</button>
 </div>
 
 <div class="stage side" id="stage">
@@ -94,20 +94,20 @@ iframe{pointer-events:auto}
 
   <aside class="drawer" id="drawer">
     <button class="close" id="drawerClose">✕</button>
-    <h2>Mejoras UI/UX aplicadas</h2>
-    <p class="sub">Mismo contenido y marca — mejor jerarquía, ritmo y consistencia.</p>
+    <h2>Applied UI/UX improvements</h2>
+    <p class="sub">Same content and brand — better hierarchy, rhythm and consistency.</p>
     <ol>
-      <li><strong>Contenido 1:1</strong>Mismos textos, nav, secciones, recursos y footer que el sitio live — solo cambia la presentación: jerarquía, color, espaciado y micro-interacciones.</li>
-      <li><strong>Jerarquía tipográfica</strong>Escala consistente (display → h2 → h3 → lede) con un solo patrón de sección: eyebrow + título + lede. El original mezcla múltiples H1 y tamaños dispares.</li>
-      <li><strong>CTAs con jerarquía</strong>"Learn More" como acción primaria y "Contact Us" como secundaria en el hero; el CTA cian de marca reservado para la barra de navegación y el banner final.</li>
-      <li><strong>Color con intención</strong>El cian #14e7e8 y azul #475ff2 de la marca se reservan para acentos y acciones; navy para secciones de énfasis. Menos ruido, más contraste jerárquico.</li>
-      <li><strong>Logos: marquee limpio</strong>Carrusel infinito en escala de grises con hover a color. Bug corregido: el sitio live muestra el placeholder "Add a short supporting paragraph here".</li>
-      <li><strong>Who We Serve en navy</strong>Las 5 audiencias en cards uniformes con iconos, misma altura y affordance "Read more" consistente — el original mezcla layouts.</li>
-      <li><strong>Stats como módulo propio</strong>Cifras en gradiente de marca sobre cards blancas; antes competían visualmente con el bloque de features de AI.</li>
-      <li><strong>Grid de productos uniforme</strong>6 cards con tags de categoría, misma estructura y hover elevación; el arrow-link señala interactividad.</li>
-      <li><strong>Recursos escaneables</strong>Cards con categoría + fecha visibles primero, títulos truncables y extractos cortos en lugar de párrafos largos.</li>
-      <li><strong>Ritmo de espaciado</strong>Sistema 8pt: secciones a 104px, gaps de 22-24px, radios de 16px en todos los módulos.</li>
-      <li><strong>Micro-interacciones</strong>Reveal-on-scroll sutil, hover lift en cards y flechas animadas en links — feedback sin distracción.</li>
+      <li><strong>1:1 content</strong>Same copy, nav, sections, resources and footer as the live site — only the presentation changes: hierarchy, color, spacing and micro-interactions.</li>
+      <li><strong>Typographic hierarchy</strong>Consistent scale (display → h2 → h3 → lede) with a single section pattern: eyebrow + title + lede. The original mixes multiple H1s and uneven sizes.</li>
+      <li><strong>CTA hierarchy</strong>"Learn More" as the primary action and "Contact Us" as secondary in the hero; the brand cyan CTA reserved for the nav bar and the closing banner.</li>
+      <li><strong>Intentional color</strong>Brand cyan #14e7e8 and blue #475ff2 are reserved for accents and actions; navy for emphasis sections. Less noise, more hierarchical contrast.</li>
+      <li><strong>Logos: clean marquee</strong>Infinite grayscale carousel with color on hover. Bug fixed: the live site shows the placeholder "Add a short supporting paragraph here".</li>
+      <li><strong>Who We Serve in navy</strong>All 5 audiences in uniform cards with icons, equal heights and a consistent "Read more" affordance — the original mixes layouts.</li>
+      <li><strong>Stats as their own module</strong>Brand-gradient figures on white cards; previously they competed visually with the AI features block.</li>
+      <li><strong>Uniform product grid</strong>6 cards with category tags, same structure and hover elevation; the arrow link signals interactivity.</li>
+      <li><strong>Scannable resources</strong>Cards with category + date first, truncatable titles and short excerpts instead of long paragraphs.</li>
+      <li><strong>Spacing rhythm</strong>8pt system: 104px sections, 22-24px gaps, 16px radii across all modules.</li>
+      <li><strong>Micro-interactions</strong>Subtle reveal-on-scroll, hover lift on cards and animated link arrows — feedback without distraction.</li>
     </ol>
   </aside>
 </div>

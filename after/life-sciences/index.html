@@ -1122,23 +1122,23 @@ section.industry-hero.industry-hero--life-sciences{padding-top:96px!important}
   var panel = document.createElement('div');
   panel.className = 'dv-hex-panel';
   var DEFS = [
-    ['oy',  'Posici\u00f3n Y', -3, 3, 0.05, 2.7],
-    ['ox',  'Posici\u00f3n X', -3, 3, 0.05, -0.4],
-    ['scale', 'Tama\u00f1o', 0.4, 1.6, 0.02, 0.9],
-    ['pieceScale', 'Tama\u00f1o piezas', 0.4, 1.8, 0.02, 1],
-    ['rot', 'Rotaci\u00f3n', -0.8, 0.8, 0.01, -0.69],
-    ['speed', 'Velocidad', 0, 3, 0.05, 0.2],
+    ['oy',  'Position Y', -3, 3, 0.05, 2.7],
+    ['ox',  'Position X', -3, 3, 0.05, -0.4],
+    ['scale', 'Size', 0.4, 1.6, 0.02, 0.9],
+    ['pieceScale', 'Piece size', 0.4, 1.8, 0.02, 1],
+    ['rot', 'Rotation', -0.8, 0.8, 0.01, -0.69],
+    ['speed', 'Speed', 0, 3, 0.05, 0.2],
     ['parallax', 'Mouse', 0, 5, 0.1, 1],
     ['zoom', 'Zoom', 0.6, 2, 0.02, 1.52],
-    ['count', 'Piezas', 4, 24, 1, 8],
-    ['hue', 'Tono', -150, 150, 1, 0]
+    ['count', 'Pieces', 4, 24, 1, 8],
+    ['hue', 'Hue', -150, 150, 1, 0]
   ];
-  var html = '<h4>Glass hero \u00b7 controles <span style=\"color:#bbb;font-weight:400\">v2</span></h4>';
-  html += '<label>Formaci\u00f3n</label><div class="dv-hex-shapes">' +
-    '<button type="button" data-shape="free">Libre</button>' +
-    '<button type="button" data-shape="sphere" class="is-on">Globo</button>' +
-    '<button type="button" data-shape="cube">Cubo</button>' +
-    '<button type="button" data-shape="pyramid">Pir\u00e1mide</button></div>';
+  var html = '<h4>Glass hero \u00b7 controls <span style=\"color:#bbb;font-weight:400\">v2</span></h4>';
+  html += '<label>Formation</label><div class="dv-hex-shapes">' +
+    '<button type="button" data-shape="free">Loose</button>' +
+    '<button type="button" data-shape="sphere" class="is-on">Sphere</button>' +
+    '<button type="button" data-shape="cube">Cube</button>' +
+    '<button type="button" data-shape="pyramid">Pyramid</button></div>';
   DEFS.forEach(function(d){
     html += '<label>' + d[1] + ' <span id="dvv-' + d[0] + '">' + d[5] + '</span></label>' +
       '<input type="range" data-k="' + d[0] + '" min="' + d[2] + '" max="' + d[3] + '" step="' + d[4] + '" value="' + d[5] + '">';
