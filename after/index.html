@@ -6810,7 +6810,7 @@ aside.pre-header:hover .dv-ph-switch,.dv-ph-switch:hover{opacity:1;visibility:vi
   };
   document.querySelectorAll('a[href]').forEach(function(a){
     var h = a.getAttribute('href');
-    if (map[h]) a.href = location.origin + map[h];
+    if (map[h]) a.href = location.origin + location.pathname.split('/after/')[0] + map[h];
   });
 })();
 </script><script type="module">

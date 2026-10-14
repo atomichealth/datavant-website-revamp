@@ -897,7 +897,7 @@ section.industry-hero.industry-hero--life-sciences{padding-top:96px!important}
   };
   document.querySelectorAll('a[href]').forEach(function(a){
     var h = a.getAttribute('href');
-    if (map[h]) a.href = location.origin + map[h];
+    if (map[h]) a.href = location.origin + location.pathname.split('/after/')[0] + map[h];
   });
 })();
 </script><script>
