@@ -6887,7 +6887,7 @@ aside.pre-header:hover .dv-ph-switch,.dv-ph-switch:hover{opacity:1;visibility:vi
   panel.className = 'dv-glass-panel';
   var DEFS = [
     ['zoom', 'Zoom', 0.6, 2, 0.02, 1.26],
-    ['ox', 'Position X', -2, 2, 0.05, -0.1],
+    ['ox', 'Position X', -2, 2, 0.05, 0],
     ['oy', 'Position Y', -2, 2, 0.05, 0],
     ['spin', 'Spin', 0, 4, 0.05, 2.2],
     ['wobble', 'Motion', 0, 3, 0.05, 2.25],
@@ -6908,14 +6908,24 @@ aside.pre-header:hover .dv-ph-switch,.dv-ph-switch:hover{opacity:1;visibility:vi
   document.body.appendChild(panel);
   btn.addEventListener('click', function(){ panel.classList.toggle('open'); });
 
+  function applyPos(){
+    var api = window.__dvGlass;
+    var zoom = (api && api.renderer && api.renderer.state.zoom) || 1;
+    var x = Number((panel.querySelector('input[data-k="ox"]') || {value:0}).value) || 0;
+    var y = Number((panel.querySelector('input[data-k="oy"]') || {value:0}).value) || 0;
+    var rect = canvas.getBoundingClientRect();
+    var ppu = rect.width / (6.9 / zoom);
+    canvas.style.transform = 'translate(' + (-rect.width * 0.04 + x * ppu) + 'px,' + (-y * ppu) + 'px)';
+  }
   function apply(k, v){
     var api = window.__dvGlass;
     if (!api) return;
     v = Number(v);
     if (k === 'speed' || k === 'iridescence' || k === 'thickness') api.renderer.setMaterial(k, v);
-    else if (k === 'zoom') { if (api.renderer.setZoomTarget) api.renderer.setZoomTarget(v); }
+    else if (k === 'zoom') { if (api.renderer.setZoomTarget) api.renderer.setZoomTarget(v); applyPos(); }
     else if (k === 'parallax') api.parallax = v;
     else if (k === 'hue') canvas.style.filter = v ? ('hue-rotate(' + v + 'deg)') : '';
+    else if (k === 'ox' || k === 'oy') applyPos();
     else api.tune[k] = v;
     if (api.renderer && api.renderer.invalidate) api.renderer.invalidate();
     document.getElementById('dvg-' + k).textContent = (k === 'hue') ? v + '\u00b0' : v;
