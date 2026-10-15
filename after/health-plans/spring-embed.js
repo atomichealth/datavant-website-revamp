@@ -7045,6 +7045,9 @@ var ol = class {
 	invalidate() {
 		this.dirty = !0, this.schedule();
 	}
+	setZoomTarget(e) {
+		this.pose.zoom = Math.max(.5, Math.min(2.2, e)), this.invalidate();
+	}
 	setPoseTarget(e, t) {
 		this.pose.yaw = e, this.pose.pitch = Math.max(-1.25, Math.min(1.25, t)), this.invalidate();
 	}
@@ -7107,12 +7110,17 @@ async function sl(e) {
 	let t = new ol(e, () => {}, () => {}, !1);
 	if (await t.start(), !t.state.ready) throw Error("renderer not ready");
 	t.setMaterial("speed", 1.3);
-	let n = matchMedia("(prefers-reduced-motion: reduce)"), r = 0;
+	let n = matchMedia("(prefers-reduced-motion: reduce)"), r = {
+		renderer: t,
+		parallax: 1
+	};
+	window.__dvSpring = r;
+	let i = 0;
 	return window.addEventListener("mousemove", (e) => {
-		n.matches || r || (r = requestAnimationFrame(() => {
-			r = 0;
-			let n = e.clientX / innerWidth * 2 - 1, i = e.clientY / innerHeight * 2 - 1;
-			t.setPoseTarget(n * .066, i * .048);
+		n.matches || i || (i = requestAnimationFrame(() => {
+			i = 0;
+			let n = e.clientX / innerWidth * 2 - 1, a = e.clientY / innerHeight * 2 - 1;
+			t.setPoseTarget(n * .066 * r.parallax, a * .048 * r.parallax);
 		}));
 	}, { passive: !0 }), window.addEventListener("pagehide", () => t.dispose(), { once: !0 }), t;
 }

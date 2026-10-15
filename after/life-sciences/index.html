@@ -984,7 +984,7 @@ section.industry-hero.industry-hero--life-sciences{padding-top:96px!important}
   try {
     if (!navigator.gpu) throw new Error('no webgpu');
     canvas.classList.add('is-live');
-    var mod = await import((location.origin + location.pathname.split('/after/')[0]) + '/after/life-sciences/spring-embed.js');
+    var mod = await import((location.origin + location.pathname.split('/after/')[0]) + '/after/life-sciences/spring-embed.js?v=' + Date.now());
     await mod.mountGlass(canvas);
     if (section) section.classList.add('dv-spring-live');
   } catch (e) {

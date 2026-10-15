@@ -795,6 +795,19 @@ aside.pre-header:hover .dv-ph-switch,.dv-ph-switch:hover{opacity:1;visibility:vi
 .primary-button:hover,.btn-container .primary-button:hover{background:#000!important;background-image:none!important;color:#fff!important;border-color:#000!important;filter:none!important}
 .primary-button:hover span{color:#fff!important}
 
+/* coil tuning panel (prototype only) */
+#dv-spring-canvas{filter:saturate(1.35)}
+.dv-coil-panel-btn{position:fixed;bottom:16px;right:16px;z-index:2100;border:1px solid #e5e5e5;background:rgba(255,255,255,.92);font:600 12px "DM Sans",sans-serif;color:#555;padding:8px 14px;border-radius:999px;cursor:pointer;opacity:.55;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.dv-coil-panel-btn:hover{opacity:1}
+.dv-coil-panel{position:fixed;bottom:58px;right:16px;z-index:2100;width:250px;background:#fff;border:1px solid #e5e5e5;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.14);padding:16px;display:none;font:12px "DM Sans",sans-serif;color:#333}
+.dv-coil-panel.open{display:block}
+.dv-coil-panel h4{margin:0 0 10px;font-size:12.5px;font-weight:700}
+.dv-coil-panel label{display:block;margin:8px 0 2px;font-weight:600;color:#555}
+.dv-coil-panel label span{float:right;font-weight:400;color:#999}
+.dv-coil-panel input[type=range]{width:100%;accent-color:#475ff2}
+.dv-coil-panel .dv-coil-reset{margin-top:10px;border:1px solid #e5e5e5;background:#fff;border-radius:999px;padding:5px 12px;font:600 11px "DM Sans",sans-serif;cursor:pointer;color:#555}
+.dv-coil-panel .dv-coil-reset:hover{border-color:#475ff2;color:#475ff2}
+
 /* responsive */
 @media(max-width:991px){.home-hero-content-header{font-size:48px!important}}
 @media(max-width:479px){
@@ -941,7 +954,7 @@ aside.pre-header:hover .dv-ph-switch,.dv-ph-switch:hover{opacity:1;visibility:vi
   try {
     if (!navigator.gpu) throw new Error('no webgpu');
     canvas.classList.add('is-live');
-    var mod = await import((location.origin + location.pathname.split('/after/')[0]) + '/after/health-plans/spring-embed.js');
+    var mod = await import((location.origin + location.pathname.split('/after/')[0]) + '/after/health-plans/spring-embed.js?v=' + Date.now());
     await mod.mountGlass(canvas);
     if (section) section.classList.add('dv-spring-live');
   } catch (e) {
@@ -1061,6 +1074,62 @@ aside.pre-header:hover .dv-ph-switch,.dv-ph-switch:hover{opacity:1;visibility:vi
   window.addEventListener('scroll', onScroll, {passive:true});
   window.addEventListener('resize', onScroll, {passive:true});
   check();
+})();
+</script>
+<script>
+(function(){
+  var canvas = document.getElementById('dv-spring-canvas');
+  if (!canvas) return;
+  var btn = document.createElement('button');
+  btn.className = 'dv-coil-panel-btn';
+  btn.textContent = '\u2699 Coil';
+  var panel = document.createElement('div');
+  panel.className = 'dv-coil-panel';
+  var DEFS = [
+    ['zoom', 'Zoom', 0.6, 2, 0.02, 1],
+    ['speed', 'Speed', 0, 3, 0.05, 1.3],
+    ['sat', 'Saturation', 0.4, 2.5, 0.05, 1.35],
+    ['parallax', 'Mouse', 0, 5, 0.1, 1],
+    ['hue', 'Hue', -150, 150, 1, 0]
+  ];
+  var html = '<h4>Glass coil \u00b7 controls</h4>';
+  DEFS.forEach(function(d){
+    html += '<label>' + d[1] + ' <span id="dvc-' + d[0] + '">' + d[5] + '</span></label>' +
+      '<input type="range" data-k="' + d[0] + '" min="' + d[2] + '" max="' + d[3] + '" step="' + d[4] + '" value="' + d[5] + '">';
+  });
+  html += '<button type="button" class="dv-coil-reset">Reset</button>';
+  panel.innerHTML = html;
+  document.body.appendChild(btn);
+  document.body.appendChild(panel);
+  btn.addEventListener('click', function(){ panel.classList.toggle('open'); });
+
+  function applyFilter(){
+    var sat = Number(panel.querySelector('input[data-k="sat"]').value);
+    var hue = Number(panel.querySelector('input[data-k="hue"]').value);
+    canvas.style.filter = 'saturate(' + sat + ')' + (hue ? ' hue-rotate(' + hue + 'deg)' : '');
+  }
+  function apply(k, v){
+    var api = window.__dvSpring;
+    v = Number(v);
+    if (k === 'speed') { if (api) api.renderer.setMaterial('speed', v); }
+    else if (k === 'zoom') { if (api && api.renderer.setZoomTarget) api.renderer.setZoomTarget(v); }
+    else if (k === 'parallax') { if (api) api.parallax = v; }
+    else applyFilter();
+    if (api && api.renderer && api.renderer.invalidate) api.renderer.invalidate();
+    document.getElementById('dvc-' + k).textContent = (k === 'hue') ? v + '\u00b0' : v;
+    console.log('[coil-tune]', k, '=', v);
+  }
+  panel.addEventListener('input', function(e){
+    var t = e.target;
+    if (t && t.dataset && t.dataset.k) apply(t.dataset.k, t.value);
+  });
+  panel.querySelector('.dv-coil-reset').addEventListener('click', function(){
+    DEFS.forEach(function(d){
+      var input = panel.querySelector('input[data-k="' + d[0] + '"]');
+      input.value = d[5];
+      apply(d[0], d[5]);
+    });
+  });
 })();
 </script>
 </body></html>
