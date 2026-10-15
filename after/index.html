@@ -622,7 +622,8 @@ header.main .main-nav__cta.dv-ctav-1:hover{box-shadow:0 2px 3px rgba(11,18,32,.1
 .dv-wsplit{opacity:1!important;transform:none!important}
 
 /* webgpu glass canvas (svg stays as fallback) */
-#dv-glass-canvas{display:none;width:118%;max-width:700px;aspect-ratio:1/1;margin:0 auto;transform:translateX(-4%)}
+.home-hero-media{position:relative;min-height:620px}
+#dv-glass-canvas{display:none;position:absolute;left:50%;top:50%;width:980px;max-width:none;aspect-ratio:1/1;margin:0;transform:translate(-50%,-50%);pointer-events:none;z-index:2}
 #dv-glass-canvas.is-live{display:block}
 
 /* mega-menu trigger open state: no pill, just the chevron flip */
@@ -6915,14 +6916,14 @@ aside.pre-header:hover .dv-ph-switch,.dv-ph-switch:hover{opacity:1;visibility:vi
     var y = Number((panel.querySelector('input[data-k="oy"]') || {value:0}).value) || 0;
     var rect = canvas.getBoundingClientRect();
     var ppu = rect.width / (6.9 / zoom);
-    canvas.style.transform = 'translate(' + (-rect.width * 0.04 + x * ppu) + 'px,' + (-y * ppu) + 'px)';
+    canvas.style.transform = 'translate(calc(-50% + ' + (x * ppu) + 'px), calc(-50% + ' + (-y * ppu) + 'px))';
   }
   function apply(k, v){
     var api = window.__dvGlass;
     if (!api) return;
     v = Number(v);
     if (k === 'speed' || k === 'iridescence' || k === 'thickness') api.renderer.setMaterial(k, v);
-    else if (k === 'zoom') { if (api.renderer.setZoomTarget) api.renderer.setZoomTarget(v); applyPos(); }
+    else if (k === 'zoom') { canvas.style.width = Math.round(980 * v) + 'px'; applyPos(); }
     else if (k === 'parallax') api.parallax = v;
     else if (k === 'hue') canvas.style.filter = v ? ('hue-rotate(' + v + 'deg)') : '';
     else if (k === 'ox' || k === 'oy') applyPos();
