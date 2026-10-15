@@ -7109,7 +7109,7 @@ var ol = class {
 async function sl(e) {
 	let t = new ol(e, () => {}, () => {}, !1);
 	if (await t.start(), !t.state.ready) throw Error("renderer not ready");
-	t.setMaterial("speed", 1.3);
+	t.setMaterial("speed", .85), t.setZoomTarget(1.24);
 	let n = matchMedia("(prefers-reduced-motion: reduce)"), r = {
 		renderer: t,
 		parallax: 1
