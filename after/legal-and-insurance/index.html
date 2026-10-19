@@ -860,9 +860,9 @@ aside.pre-header:hover .dv-ph-switch,.dv-ph-switch:hover{opacity:1;visibility:vi
 .industry-related-resources__grid{grid-template-columns:repeat(2,1fr)!important}
 @media(max-width:599px){.industry-related-resources__grid{grid-template-columns:1fr!important}}
 
-/* learn more hover: beat theme's nested &:hover cyan */
-html .primary-button.w-button:hover,html .home-hero-section .primary-button.w-button:hover,html .btn-container .primary-button.w-button:hover{background-color:#000!important;background-image:none!important;color:#fff!important;border-color:#000!important;filter:none!important}
-html .primary-button.w-button:hover span{color:#fff!important}
+/* learn more hover: beat theme's nested &:hover cyan (it desugars to .home-hero-section .btn-container .primary-button.w-button:hover = 0,5,0) */
+html .primary-button.w-button:hover,html .btn-container .primary-button.w-button:hover,html .home-hero-section .btn-container .primary-button.w-button:hover{background-color:#000!important;background-image:none!important;color:#fff!important;border-color:#000!important;filter:none!important}
+html .primary-button.w-button:hover span,html .home-hero-section .btn-container .primary-button.w-button:hover span{color:#fff!important}
 
 /* hero art tuning panel (prototype only) */
 .dv-art-panel-btn{position:fixed;bottom:16px;right:90px;z-index:2100;border:1px solid #e5e5e5;background:rgba(255,255,255,.92);font:600 12px "DM Sans",sans-serif;color:#555;padding:8px 14px;border-radius:999px;cursor:pointer;opacity:.55;box-shadow:0 2px 10px rgba(0,0,0,.08)}

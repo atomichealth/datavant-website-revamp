@@ -853,9 +853,9 @@ aside.pre-header:hover .dv-ph-switch,.dv-ph-switch:hover{opacity:1;visibility:vi
 .dv-silk-panel .dv-silk-reset{margin-top:10px;border:1px solid #e5e5e5;background:#fff;border-radius:999px;padding:5px 12px;font:600 11px "DM Sans",sans-serif;cursor:pointer;color:#555}
 .dv-silk-panel .dv-silk-reset:hover{border-color:#475ff2;color:#475ff2}
 
-/* learn more hover: beat theme's nested &:hover cyan */
-html .primary-button.w-button:hover,html .home-hero-section .primary-button.w-button:hover,html .btn-container .primary-button.w-button:hover{background-color:#000!important;background-image:none!important;color:#fff!important;border-color:#000!important;filter:none!important}
-html .primary-button.w-button:hover span{color:#fff!important}
+/* learn more hover: beat theme's nested &:hover cyan (it desugars to .home-hero-section .btn-container .primary-button.w-button:hover = 0,5,0) */
+html .primary-button.w-button:hover,html .btn-container .primary-button.w-button:hover,html .home-hero-section .btn-container .primary-button.w-button:hover{background-color:#000!important;background-image:none!important;color:#fff!important;border-color:#000!important;filter:none!important}
+html .primary-button.w-button:hover span,html .home-hero-section .btn-container .primary-button.w-button:hover span{color:#fff!important}
 
 /* related cards: same light gray hairline as the rest */
 .industry-related-resources__card{border:1px solid rgba(11,18,32,.08)!important}

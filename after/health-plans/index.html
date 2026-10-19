@@ -831,9 +831,9 @@ aside.pre-header:hover .dv-ph-switch,.dv-ph-switch:hover{opacity:1;visibility:vi
 .testimonial-cards:not(.is-editor-mode) .testimonial-cards__card:hover:before{opacity:0!important}
 .testimonial-cards:not(.is-editor-mode) .testimonial-cards__card:hover{--tc-card-text:var(--tc-light-card-text);--tc-card-quote-mix:var(--tc-light-card-quote-mix);--tc-card-border:var(--tc-light-card-border);--tc-card-shadow:var(--tc-light-card-shadow)}
 
-/* learn more hover: beat theme's nested &:hover cyan */
-html .primary-button.w-button:hover,html .home-hero-section .primary-button.w-button:hover,html .btn-container .primary-button.w-button:hover{background-color:#000!important;background-image:none!important;color:#fff!important;border-color:#000!important;filter:none!important}
-html .primary-button.w-button:hover span{color:#fff!important}
+/* learn more hover: beat theme's nested &:hover cyan (it desugars to .home-hero-section .btn-container .primary-button.w-button:hover = 0,5,0) */
+html .primary-button.w-button:hover,html .btn-container .primary-button.w-button:hover,html .home-hero-section .btn-container .primary-button.w-button:hover{background-color:#000!important;background-image:none!important;color:#fff!important;border-color:#000!important;filter:none!important}
+html .primary-button.w-button:hover span,html .home-hero-section .btn-container .primary-button.w-button:hover span{color:#fff!important}
 
 /* related cards: same light gray hairline as the rest */
 .industry-related-resources__card{border:1px solid rgba(11,18,32,.08)!important}
