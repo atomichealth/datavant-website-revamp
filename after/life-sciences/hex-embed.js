@@ -6178,7 +6178,7 @@ function il(e) {
 //#region src/shaders/glass.wgsl
 var al = (e) => (typeof e == "object" && e && Object.values(Object.freeze(e)).forEach(al), e), ol = /* @__PURE__ */ al({
 	version: 2,
-	wgsl: "// Rounded optical lenses traced in object space. All lighting is procedural;\n// the supplied image is a visual reference, never a texture on the 3D asset.\nconst PI: f32 = 3.14159265359;\nconst EPS: f32 = 0.00045;\nconst FAR: f32 = 50.0;\nconst RADIUS: f32 = 1.02;\n\nstruct Params {\n  resolution: vec2f,\n  zoom: f32,\n  iridescence: f32,\n  thickness: f32,\n  background: f32,\n  dispersion: f32,\n  padding: f32,\n}\nstruct Scene { lenses: array<mat4x4f, 24> }\n@group(0) @binding(0) var<uniform> params: Params;\n@group(0) @binding(1) var<uniform> scene: Scene;\n\nstruct Hit { distance: f32, id: i32 }\n\nfn fresnel(ior: f32, cosine: f32) -> f32 {\n  let r0 = (ior - 1.0) / (ior + 1.0);\n  return r0 * r0 + (1.0 - r0 * r0) * pow(1.0 - clamp(cosine, 0.0, 1.0), 5.0);\n}\n\nfn local_vector(v: vec3f, transform: mat4x4f) -> vec3f {\n  return vec3f(dot(v, transform[0].xyz), dot(v, transform[1].xyz), dot(v, transform[2].xyz));\n}\n\nfn lens_sdf(p: vec3f) -> f32 {\n  // Rounded hexagonal glass prism with a chunky, visible edge.\n  let hex_r = 0.92;\n  let half_t = 0.17 * params.thickness;\n  let bevel = 0.055;\n  let k = vec3f(-0.8660254, 0.5, 0.57735);\n  var q = abs(p);\n  let fold = q.xy - 2.0 * min(dot(k.xy, q.xy), 0.0) * k.xy;\n  let r = hex_r - bevel;\n  let d = vec2f(\n    length(fold - vec2f(clamp(fold.x, -k.z * r, k.z * r), r)) * sign(fold.y - r),\n    q.z - (half_t - bevel)\n  );\n  return min(max(d.x, d.y), 0.0) + length(max(d, vec2f(0.0))) - bevel;\n}\n\nfn lens_normal(p: vec3f) -> vec3f {\n  let e = vec2f(0.0008, 0.0);\n  return normalize(vec3f(\n    lens_sdf(p + e.xyy) - lens_sdf(p - e.xyy),\n    lens_sdf(p + e.yxy) - lens_sdf(p - e.yxy),\n    lens_sdf(p + e.yyx) - lens_sdf(p - e.yyx)\n  ));\n}\n\nfn intersect_lens(origin: vec3f, direction: vec3f, id: i32, limit: f32) -> f32 {\n  let transform = scene.lenses[id];\n  let sc = length(transform[0].xyz);\n  let ro = local_vector(origin - transform[3].xyz, transform);\n  let rd = local_vector(direction, transform);\n  let a = dot(rd, rd);\n  let b = dot(ro, rd);\n  let bound = 1.35 * sc;\n  let discriminant = b * b - a * (dot(ro, ro) - bound * bound);\n  if (discriminant < 0.0) { return FAR; }\n  let root = sqrt(discriminant);\n  let end = min((-b + root) / a, limit);\n  var t = max(0.0, (-b - root) / a);\n  if (end < t) { return FAR; }\n  for (var step = 0; step < 56; step++) {\n    let d = abs(lens_sdf((ro + rd * t) / sc));\n    if (d < EPS) { return t; }\n    t += max(d * 0.88, EPS * 0.6);\n    if (t > end) { break; }\n  }\n  return FAR;\n}\n\nfn intersect_scene(origin: vec3f, direction: vec3f, inside_id: i32) -> Hit {\n  if (inside_id >= 0) {\n    return Hit(intersect_lens(origin, direction, inside_id, FAR), inside_id);\n  }\n  var hit = Hit(FAR, -1);\n  for (var id = 0; id < 24; id++) {\n    let distance = intersect_lens(origin, direction, id, hit.distance);\n    if (distance < hit.distance) { hit = Hit(distance, id); }\n  }\n  return hit;\n}\n\nfn world_normal(p: vec3f, id: i32) -> vec3f {\n  let transform = scene.lenses[id];\n  let sc = length(transform[0].xyz);\n  let n = lens_normal(local_vector(p - transform[3].xyz, transform) / sc);\n  return normalize((transform * vec4f(n, 0.0)).xyz);\n}\n\nfn backdrop() -> vec3f {\n  if (params.background > 1.5) { return vec3f(0.008, 0.012, 0.016); }\n  if (params.background > 0.5) { return vec3f(0.78, 0.85, 0.85); }\n  return vec3f(1.0);\n}\n\n// An infinite white photo studio, two black flags, and long strip softboxes.\nfn studio(direction: vec3f) -> vec3f {\n  let d = normalize(direction);\n  var color = mix(vec3f(0.57, 0.75, 0.74), vec3f(1.08, 1.12, 1.12), smoothstep(-0.65, 0.7, d.y));\n  let flag_a = smoothstep(0.63, 0.70, dot(d, normalize(vec3f(-0.9, -0.2, -0.55))));\n  let flag_b = smoothstep(0.75, 0.86, dot(d, normalize(vec3f(0.75, -0.65, 0.5))));\n  color = mix(color, vec3f(0.005, 0.025, 0.04), max(flag_a, flag_b) * 0.985);\n  let strip_a = pow(max(0.0, 1.0 - abs(dot(d, normalize(vec3f(0.7, 0.15, 0.7))))), 90.0) * smoothstep(-0.3, 0.35, d.y);\n  let strip_b = pow(max(0.0, 1.0 - abs(dot(d, normalize(vec3f(-0.35, 0.85, 0.38))))), 150.0) * smoothstep(-0.5, 0.7, d.z);\n  color += vec3f(1.35, 1.55, 1.5) * strip_a + vec3f(1.25, 1.15, 1.25) * strip_b;\n  let strip_phase = atan2(d.y, d.x);\n  let optical_delta = (d.z - (0.30 + 0.085 * sin(strip_phase * 3.0))) / 0.018;\n  let optical_strip = exp(-optical_delta * optical_delta) * (0.3 + 0.7 * smoothstep(-0.4, 0.5, sin(strip_phase + 0.5)));\n  color += vec3f(6.5, 8.0, 7.0) * optical_strip;\n  return color;\n}\n\nfn film_color(cosine: f32, point: vec3f, id: i32) -> vec3f {\n  let p = local_vector(point - scene.lenses[id][3].xyz, scene.lenses[id]) / length(scene.lenses[id][0].xyz);\n  let film_depth = 395.0 + 26.0 * sin(p.x * 1.7 + f32(id) * 0.9) + p.y * 18.0;\n  let transmitted_cosine = sqrt(max(0.0, 1.0 - (1.0 - cosine * cosine) / (1.38 * 1.38)));\n  let phase = (4.0 * PI * 1.38 * film_depth * transmitted_cosine) / vec3f(650.0, 510.0, 475.0);\n  // Metal's fast cosine can overshoot [-1, 1] by a few ulps. Clamp before\n  // fractional pow: a negative base would produce isolated NaN color channels.\n  return pow(clamp(0.5 + 0.5 * cos(phase + vec3f(0.3, 0.0, 0.4)), vec3f(0.0), vec3f(1.0)), vec3f(1.25));\n}\n\nfn reflected_light(origin: vec3f, direction: vec3f, source_id: i32) -> vec3f {\n  var other = Hit(FAR, -1);\n  for (var id = 0; id < 24; id++) {\n    if (id == source_id) { continue; }\n    let distance = intersect_lens(origin, direction, id, other.distance);\n    if (distance < other.distance) { other = Hit(distance, id); }\n  }\n  if (other.id < 0) { return studio(direction); }\n  let point = origin + direction * other.distance;\n  let n = world_normal(point, other.id);\n  let facing = abs(dot(n, direction));\n  let rim = pow(1.0 - facing, 2.0);\n  let tint = mix(vec3f(0.46, 0.76, 0.73), vec3f(0.004, 0.10, 0.12), smoothstep(0.05, 0.6, rim));\n  let interference = film_color(facing, point, other.id);\n  return mix(tint, interference * 1.3, smoothstep(0.45, 0.75, rim) * params.iridescence) + studio(reflect(direction, n)) * 0.24;\n}\n\nfn trace(origin: vec3f, direction: vec3f) -> vec3f {\n  var ro = origin;\n  var rd = direction;\n  var color = vec3f(0.0);\n  var throughput = vec3f(1.0);\n  var inside_id = -1;\n  for (var bounce = 0; bounce < 7; bounce++) {\n    let hit = intersect_scene(ro, rd, inside_id);\n    if (hit.id < 0 || hit.distance >= FAR) {\n      color += throughput * backdrop();\n      return color;\n    }\n    if (inside_id >= 0) {\n      throughput *= exp(-vec3f(0.86, 0.22, 0.18) * hit.distance);\n    }\n    let point = ro + rd * hit.distance;\n    let outward = world_normal(point, hit.id);\n    let exiting = inside_id >= 0;\n    let n = select(outward, -outward, exiting);\n    let cosine = clamp(-dot(rd, n), 0.0, 1.0);\n    let f = fresnel(1.48, cosine);\n    let film = film_color(cosine, point, hit.id);\n    let local_n = normalize(local_vector(outward, scene.lenses[hit.id]));\n    let rim = smoothstep(0.035, 0.45, 1.0 - abs(local_n.z));\n    let local_p = local_vector(point - scene.lenses[hit.id][3].xyz, scene.lenses[hit.id]) / length(scene.lenses[hit.id][0].xyz);\n    let azimuth = atan2(local_p.y, local_p.x);\n    let color_patch = pow(clamp(0.5 + 0.5 * sin(azimuth * 3.0 + f32(hit.id) * 1.3), 0.0, 1.0), 4.0);\n    let spectrum_wave = clamp(0.5 + 0.5 * cos(azimuth * 5.0 + cosine * 10.0 + f32(hit.id) * 1.4 + vec3f(0.0, 2.094, 4.188)), vec3f(0.0), vec3f(1.0));\n    let spectral = 0.008 + 0.992 * spectrum_wave * spectrum_wave;\n    let prism_color = mix(vec3f(0.005, 0.95, 0.88), spectral, color_patch);\n    let coating = params.iridescence * (0.04 + 0.62 * pow(1.0 - cosine, 1.8));\n    let reflectance = clamp(vec3f(f) + film * coating + rim * 0.6, vec3f(0.0), vec3f(0.97));\n    let reflection = reflect(rd, n);\n    var lighting = studio(reflection) * vec3f(0.93, 1.03, 1.05);\n    if (bounce == 0) { lighting = reflected_light(point + n * EPS * 8.0, reflection, hit.id) * vec3f(0.93, 1.03, 1.05); }\n    lighting = mix(lighting, studio(reflection) * 1.5 + vec3f(0.12), rim);\n    // Thin-film interference varies reflectance by wavelength, strongest at the bevel.\n    let edge_coating = mix(vec3f(1.0), prism_color, rim * min(params.iridescence * 1.3, 1.0) * 0.98);\n    let eta = select(1.0 / 1.48, 1.48, exiting);\n    let transmission = refract(rd, n, eta);\n    if (dot(transmission, transmission) < 0.001) {\n      rd = reflection;\n      ro = point + n * EPS * 8.0;\n      // Total internal reflection has no outgoing branch: conserve its energy.\n      throughput *= mix(vec3f(0.99), edge_coating, 0.2);\n    } else {\n      color += throughput * reflectance * lighting * edge_coating;\n      throughput *= (1.0 - reflectance) * edge_coating;\n      // Slight spectral separation at silhouettes, with energy kept in the transmitted ray.\n      let prism = params.dispersion * pow(1.0 - cosine, 3.0);\n      throughput *= vec3f(1.0 - prism * 2.0, 1.0, 1.0 - prism);\n      rd = normalize(transmission);\n      ro = point - n * EPS * 8.0;\n      inside_id = select(hit.id, -1, exiting);\n    }\n    if (max(throughput.r, max(throughput.g, throughput.b)) < 0.015) { return color; }\n  }\n  return color + throughput * studio(rd);\n}\n\n// ENTRY_POINT — the headless verification harness also probes the live helpers above.\n@fragment fn fs_main(@location(0) uv: vec2f) -> @location(0) vec4f {\n  let aspect = params.resolution.x / params.resolution.y;\n  let screen = vec2f((uv.x - 0.5) * aspect, 0.5 - uv.y);\n  // Fixed world width keeps the composition stable for any canvas aspect.\n  let scale = 13.45 / aspect / params.zoom;\n  let shifted = screen;\n  let origin = vec3f(shifted * scale, 9.5);\n  let direction = normalize(vec3f(shifted * 0.035, -1.0));\n  let linear = trace(origin, direction);\n  // Soft highlight shoulder preserves a paper-white backdrop.\n  let mapped = min(linear, vec3f(1.0));\n  let srgb = mix(mapped * 12.92, 1.055 * pow(max(mapped, vec3f(0.0)), vec3f(1.0 / 2.4)) - 0.055, step(vec3f(0.0031308), mapped));\n  return vec4f(srgb, 1.0);\n}\n",
+	wgsl: "// Rounded optical lenses traced in object space. All lighting is procedural;\n// the supplied image is a visual reference, never a texture on the 3D asset.\nconst PI: f32 = 3.14159265359;\nconst EPS: f32 = 0.00045;\nconst FAR: f32 = 50.0;\nconst RADIUS: f32 = 1.02;\n\nstruct Params {\n  resolution: vec2f,\n  zoom: f32,\n  iridescence: f32,\n  thickness: f32,\n  background: f32,\n  dispersion: f32,\n  padding: f32,\n}\nstruct Scene { lenses: array<mat4x4f, 24> }\n@group(0) @binding(0) var<uniform> params: Params;\n@group(0) @binding(1) var<uniform> scene: Scene;\n\nstruct Hit { distance: f32, id: i32 }\n\nfn fresnel(ior: f32, cosine: f32) -> f32 {\n  let r0 = (ior - 1.0) / (ior + 1.0);\n  return r0 * r0 + (1.0 - r0 * r0) * pow(1.0 - clamp(cosine, 0.0, 1.0), 5.0);\n}\n\nfn local_vector(v: vec3f, transform: mat4x4f) -> vec3f {\n  return vec3f(dot(v, transform[0].xyz), dot(v, transform[1].xyz), dot(v, transform[2].xyz));\n}\n\nfn lens_sdf(p: vec3f) -> f32 {\n  // Rounded hexagonal glass prism with a chunky, visible edge.\n  let hex_r = 0.92;\n  let half_t = 0.17 * params.thickness;\n  let bevel = 0.055;\n  let k = vec3f(-0.8660254, 0.5, 0.57735);\n  var q = abs(p);\n  let fold = q.xy - 2.0 * min(dot(k.xy, q.xy), 0.0) * k.xy;\n  let r = hex_r - bevel;\n  let d = vec2f(\n    length(fold - vec2f(clamp(fold.x, -k.z * r, k.z * r), r)) * sign(fold.y - r),\n    q.z - (half_t - bevel)\n  );\n  return min(max(d.x, d.y), 0.0) + length(max(d, vec2f(0.0))) - bevel;\n}\n\nfn lens_normal(p: vec3f) -> vec3f {\n  let e = vec2f(0.0008, 0.0);\n  return normalize(vec3f(\n    lens_sdf(p + e.xyy) - lens_sdf(p - e.xyy),\n    lens_sdf(p + e.yxy) - lens_sdf(p - e.yxy),\n    lens_sdf(p + e.yyx) - lens_sdf(p - e.yyx)\n  ));\n}\n\nfn intersect_lens(origin: vec3f, direction: vec3f, id: i32, limit: f32) -> f32 {\n  let transform = scene.lenses[id];\n  let sc = length(transform[0].xyz);\n  let ro = local_vector(origin - transform[3].xyz, transform);\n  let rd = local_vector(direction, transform);\n  let a = dot(rd, rd);\n  let b = dot(ro, rd);\n  let bound = 1.35 * sc;\n  let discriminant = b * b - a * (dot(ro, ro) - bound * bound);\n  if (discriminant < 0.0) { return FAR; }\n  let root = sqrt(discriminant);\n  let end = min((-b + root) / a, limit);\n  var t = max(0.0, (-b - root) / a);\n  if (end < t) { return FAR; }\n  for (var step = 0; step < 56; step++) {\n    let d = abs(lens_sdf((ro + rd * t) / sc));\n    if (d < EPS) { return t; }\n    t += max(d * 0.88, EPS * 0.6);\n    if (t > end) { break; }\n  }\n  return FAR;\n}\n\nfn intersect_scene(origin: vec3f, direction: vec3f, inside_id: i32) -> Hit {\n  if (inside_id >= 0) {\n    return Hit(intersect_lens(origin, direction, inside_id, FAR), inside_id);\n  }\n  var hit = Hit(FAR, -1);\n  for (var id = 0; id < 24; id++) {\n    let distance = intersect_lens(origin, direction, id, hit.distance);\n    if (distance < hit.distance) { hit = Hit(distance, id); }\n  }\n  return hit;\n}\n\nfn world_normal(p: vec3f, id: i32) -> vec3f {\n  let transform = scene.lenses[id];\n  let sc = length(transform[0].xyz);\n  let n = lens_normal(local_vector(p - transform[3].xyz, transform) / sc);\n  return normalize((transform * vec4f(n, 0.0)).xyz);\n}\n\nfn backdrop() -> vec3f {\n  if (params.background > 1.5) { return vec3f(0.008, 0.012, 0.016); }\n  if (params.background > 0.5) { return vec3f(0.78, 0.85, 0.85); }\n  return vec3f(1.0);\n}\n\n// An infinite white photo studio, two black flags, and long strip softboxes.\nfn studio(direction: vec3f) -> vec3f {\n  let d = normalize(direction);\n  var color = mix(vec3f(0.57, 0.75, 0.74), vec3f(1.08, 1.12, 1.12), smoothstep(-0.65, 0.7, d.y));\n  let flag_a = smoothstep(0.63, 0.70, dot(d, normalize(vec3f(-0.9, -0.2, -0.55))));\n  let flag_b = smoothstep(0.75, 0.86, dot(d, normalize(vec3f(0.75, -0.65, 0.5))));\n  color = mix(color, vec3f(0.005, 0.025, 0.04), max(flag_a, flag_b) * 0.985);\n  let strip_a = pow(max(0.0, 1.0 - abs(dot(d, normalize(vec3f(0.7, 0.15, 0.7))))), 90.0) * smoothstep(-0.3, 0.35, d.y);\n  let strip_b = pow(max(0.0, 1.0 - abs(dot(d, normalize(vec3f(-0.35, 0.85, 0.38))))), 150.0) * smoothstep(-0.5, 0.7, d.z);\n  color += vec3f(1.35, 1.55, 1.5) * strip_a + vec3f(1.25, 1.15, 1.25) * strip_b;\n  let strip_phase = atan2(d.y, d.x);\n  let optical_delta = (d.z - (0.30 + 0.085 * sin(strip_phase * 3.0))) / 0.018;\n  let optical_strip = exp(-optical_delta * optical_delta) * (0.3 + 0.7 * smoothstep(-0.4, 0.5, sin(strip_phase + 0.5)));\n  color += vec3f(6.5, 8.0, 7.0) * optical_strip;\n  return color;\n}\n\nfn film_color(cosine: f32, point: vec3f, id: i32) -> vec3f {\n  let p = local_vector(point - scene.lenses[id][3].xyz, scene.lenses[id]) / length(scene.lenses[id][0].xyz);\n  let film_depth = 395.0 + 26.0 * sin(p.x * 1.7 + f32(id) * 0.9) + p.y * 18.0;\n  let transmitted_cosine = sqrt(max(0.0, 1.0 - (1.0 - cosine * cosine) / (1.38 * 1.38)));\n  let phase = (4.0 * PI * 1.38 * film_depth * transmitted_cosine) / vec3f(650.0, 510.0, 475.0);\n  // Metal's fast cosine can overshoot [-1, 1] by a few ulps. Clamp before\n  // fractional pow: a negative base would produce isolated NaN color channels.\n  return pow(clamp(0.5 + 0.5 * cos(phase + vec3f(0.3, 0.0, 0.4)), vec3f(0.0), vec3f(1.0)), vec3f(1.25));\n}\n\nfn reflected_light(origin: vec3f, direction: vec3f, source_id: i32) -> vec3f {\n  var other = Hit(FAR, -1);\n  for (var id = 0; id < 24; id++) {\n    if (id == source_id) { continue; }\n    let distance = intersect_lens(origin, direction, id, other.distance);\n    if (distance < other.distance) { other = Hit(distance, id); }\n  }\n  if (other.id < 0) { return studio(direction); }\n  let point = origin + direction * other.distance;\n  let n = world_normal(point, other.id);\n  let facing = abs(dot(n, direction));\n  let rim = pow(1.0 - facing, 2.0);\n  let tint = mix(vec3f(0.46, 0.76, 0.73), vec3f(0.004, 0.10, 0.12), smoothstep(0.05, 0.6, rim));\n  let interference = film_color(facing, point, other.id);\n  return mix(tint, interference * 1.3, smoothstep(0.45, 0.75, rim) * params.iridescence) + studio(reflect(direction, n)) * 0.24;\n}\n\nfn trace(origin: vec3f, direction: vec3f) -> vec3f {\n  var ro = origin;\n  var rd = direction;\n  var color = vec3f(0.0);\n  var throughput = vec3f(1.0);\n  var inside_id = -1;\n  for (var bounce = 0; bounce < 7; bounce++) {\n    let hit = intersect_scene(ro, rd, inside_id);\n    if (hit.id < 0 || hit.distance >= FAR) {\n      color += throughput * backdrop();\n      return color;\n    }\n    if (inside_id >= 0) {\n      throughput *= exp(-vec3f(0.86, 0.22, 0.18) * hit.distance);\n    }\n    let point = ro + rd * hit.distance;\n    let outward = world_normal(point, hit.id);\n    let exiting = inside_id >= 0;\n    let n = select(outward, -outward, exiting);\n    let cosine = clamp(-dot(rd, n), 0.0, 1.0);\n    let f = fresnel(1.48, cosine);\n    let film = film_color(cosine, point, hit.id);\n    let local_n = normalize(local_vector(outward, scene.lenses[hit.id]));\n    let rim = smoothstep(0.035, 0.45, 1.0 - abs(local_n.z));\n    let local_p = local_vector(point - scene.lenses[hit.id][3].xyz, scene.lenses[hit.id]) / length(scene.lenses[hit.id][0].xyz);\n    let azimuth = atan2(local_p.y, local_p.x);\n    let color_patch = pow(clamp(0.5 + 0.5 * sin(azimuth * 3.0 + f32(hit.id) * 1.3), 0.0, 1.0), 4.0);\n    let spectrum_wave = clamp(0.5 + 0.5 * cos(azimuth * 5.0 + cosine * 10.0 + f32(hit.id) * 1.4 + vec3f(0.0, 2.094, 4.188)), vec3f(0.0), vec3f(1.0));\n    let spectral = 0.008 + 0.992 * spectrum_wave * spectrum_wave;\n    let prism_color = mix(vec3f(0.005, 0.95, 0.88), spectral, color_patch);\n    let coating = params.iridescence * (0.04 + 0.62 * pow(1.0 - cosine, 1.8));\n    let reflectance = clamp(vec3f(f) + film * coating + rim * 0.6, vec3f(0.0), vec3f(0.97));\n    let reflection = reflect(rd, n);\n    var lighting = studio(reflection) * vec3f(0.93, 1.03, 1.05);\n    if (bounce == 0) { lighting = reflected_light(point + n * EPS * 8.0, reflection, hit.id) * vec3f(0.93, 1.03, 1.05); }\n    lighting = mix(lighting, studio(reflection) * 1.5 + vec3f(0.12), rim);\n    // Thin-film interference varies reflectance by wavelength, strongest at the bevel.\n    let edge_coating = mix(vec3f(1.0), prism_color, rim * min(params.iridescence * 1.3, 1.0) * 0.98);\n    let eta = select(1.0 / 1.48, 1.48, exiting);\n    let transmission = refract(rd, n, eta);\n    if (dot(transmission, transmission) < 0.001) {\n      rd = reflection;\n      ro = point + n * EPS * 8.0;\n      // Total internal reflection has no outgoing branch: conserve its energy.\n      throughput *= mix(vec3f(0.99), edge_coating, 0.2);\n    } else {\n      color += throughput * reflectance * lighting * edge_coating;\n      throughput *= (1.0 - reflectance) * edge_coating;\n      // Slight spectral separation at silhouettes, with energy kept in the transmitted ray.\n      let prism = params.dispersion * pow(1.0 - cosine, 3.0);\n      throughput *= vec3f(1.0 - prism * 2.0, 1.0, 1.0 - prism);\n      rd = normalize(transmission);\n      ro = point - n * EPS * 8.0;\n      inside_id = select(hit.id, -1, exiting);\n    }\n    if (max(throughput.r, max(throughput.g, throughput.b)) < 0.015) { return color; }\n  }\n  return color + throughput * studio(rd);\n}\n\n// ENTRY_POINT — the headless verification harness also probes the live helpers above.\nfn sample_px(uv: vec2f) -> vec4f {\n  let aspect = params.resolution.x / params.resolution.y;\n  let screen = vec2f((uv.x - 0.5) * aspect, 0.5 - uv.y);\n  // Fixed world width keeps the composition stable for any canvas aspect.\n  let scale = 13.45 / aspect / params.zoom;\n  let shifted = screen;\n  let origin = vec3f(shifted * scale, 9.5);\n  let direction = normalize(vec3f(shifted * 0.035, -1.0));\n  return vec4f(trace(origin, direction), 1.0);\n}\n\n@fragment fn fs_main(@location(0) uv: vec2f) -> @location(0) vec4f {\n  // 2x2 supersampling: four rays per pixel, averaged in linear light.\n  let px = 1.0 / params.resolution;\n  var acc = vec4f(0.0);\n  acc += sample_px(uv + vec2f(-0.25, -0.25) * px);\n  acc += sample_px(uv + vec2f(0.25, -0.25) * px);\n  acc += sample_px(uv + vec2f(-0.25, 0.25) * px);\n  acc += sample_px(uv + vec2f(0.25, 0.25) * px);\n  let traced = acc * 0.25;\n  let mapped = min(traced.rgb, vec3f(1.0));\n  let srgb = mix(mapped * 12.92, 1.055 * pow(max(mapped, vec3f(0.0)), vec3f(1.0 / 2.4)) - 0.055, step(vec3f(0.0031308), mapped));\n  return vec4f(srgb * traced.a, traced.a);\n}\n",
 	reflection: {
 		bindings: [{
 			group: 0,
@@ -6188,13 +6188,13 @@ var al = (e) => (typeof e == "object" && e && Object.values(Object.freeze(e)).fo
 			type: {
 				kind: "identifier",
 				name: "Params",
-				mangledName: "_vgsl_88af53d5__Params"
+				mangledName: "_vgsl_1e5361a8__Params"
 			},
 			kind: "buffer",
 			addressSpace: "uniform",
 			struct: {
 				name: "Params",
-				mangledName: "_vgsl_88af53d5__Params",
+				mangledName: "_vgsl_1e5361a8__Params",
 				members: [
 					{
 						name: "resolution",
@@ -6258,7 +6258,7 @@ var al = (e) => (typeof e == "object" && e && Object.values(Object.freeze(e)).fo
 				type: {
 					kind: "identifier",
 					name: "Params",
-					mangledName: "_vgsl_88af53d5__Params"
+					mangledName: "_vgsl_1e5361a8__Params"
 				},
 				align: 8,
 				size: 32,
@@ -6436,13 +6436,13 @@ var al = (e) => (typeof e == "object" && e && Object.values(Object.freeze(e)).fo
 			type: {
 				kind: "identifier",
 				name: "Scene",
-				mangledName: "_vgsl_88af53d5__Scene"
+				mangledName: "_vgsl_1e5361a8__Scene"
 			},
 			kind: "buffer",
 			addressSpace: "uniform",
 			struct: {
 				name: "Scene",
-				mangledName: "_vgsl_88af53d5__Scene",
+				mangledName: "_vgsl_1e5361a8__Scene",
 				members: [{
 					name: "lenses",
 					type: {
@@ -6468,7 +6468,7 @@ var al = (e) => (typeof e == "object" && e && Object.values(Object.freeze(e)).fo
 				type: {
 					kind: "identifier",
 					name: "Scene",
-					mangledName: "_vgsl_88af53d5__Scene"
+					mangledName: "_vgsl_1e5361a8__Scene"
 				},
 				align: 16,
 				size: 1536,
@@ -6576,7 +6576,7 @@ var al = (e) => (typeof e == "object" && e && Object.values(Object.freeze(e)).fo
 		structs: [
 			{
 				name: "Params",
-				mangledName: "_vgsl_88af53d5__Params",
+				mangledName: "_vgsl_1e5361a8__Params",
 				members: [
 					{
 						name: "resolution",
@@ -6635,7 +6635,7 @@ var al = (e) => (typeof e == "object" && e && Object.values(Object.freeze(e)).fo
 			},
 			{
 				name: "Scene",
-				mangledName: "_vgsl_88af53d5__Scene",
+				mangledName: "_vgsl_1e5361a8__Scene",
 				members: [{
 					name: "lenses",
 					type: {
@@ -6656,7 +6656,7 @@ var al = (e) => (typeof e == "object" && e && Object.values(Object.freeze(e)).fo
 			},
 			{
 				name: "Hit",
-				mangledName: "_vgsl_88af53d5__Hit",
+				mangledName: "_vgsl_1e5361a8__Hit",
 				members: [{
 					name: "distance",
 					type: {
@@ -6679,7 +6679,7 @@ var al = (e) => (typeof e == "object" && e && Object.values(Object.freeze(e)).fo
 			type: {
 				kind: "identifier",
 				name: "Params",
-				mangledName: "_vgsl_88af53d5__Params"
+				mangledName: "_vgsl_1e5361a8__Params"
 			},
 			align: 8,
 			size: 32,
@@ -6847,7 +6847,7 @@ var al = (e) => (typeof e == "object" && e && Object.values(Object.freeze(e)).fo
 			type: {
 				kind: "identifier",
 				name: "Scene",
-				mangledName: "_vgsl_88af53d5__Scene"
+				mangledName: "_vgsl_1e5361a8__Scene"
 			},
 			align: 16,
 			size: 1536,
@@ -6928,7 +6928,7 @@ var al = (e) => (typeof e == "object" && e && Object.values(Object.freeze(e)).fo
 			}]
 		}]
 	},
-	sourceChecksum: "fnv1a64-utf16le-v1:f93302633b28bcc1",
+	sourceChecksum: "fnv1a64-utf16le-v1:aa43a87254d93487",
 	producer: "@vgpu/wgsl/prepare-v2",
 	functionExports: []
 }), sl = {
@@ -6937,11 +6937,11 @@ var al = (e) => (typeof e == "object" && e && Object.values(Object.freeze(e)).fo
 	speed: 1,
 	background: 0
 }, Z = {
-	ox: -.4,
-	oy: 2.7,
-	scale: .9,
+	ox: -.2,
+	oy: 2.95,
+	scale: 1.02,
 	rot: -.69,
-	count: 8,
+	count: 5,
 	pieceScale: 1
 };
 function cl(e, t, n) {
@@ -7609,6 +7609,8 @@ var Ml = class {
 	dirty = !0;
 	exporting = !1;
 	reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+	dprCap = 1.5;
+	emaDt = 0;
 	constructor(e, t, n, r = !0) {
 		this.canvas = e, this.onError = t, this.onPlaybackChange = n, this.interactive = r;
 		let i = new URLSearchParams(location.search);
@@ -7634,7 +7636,7 @@ var Ml = class {
 		}), this.output = Ia(this.gpu, this.canvas, {
 			autoResize: !1,
 			size: [1, 1],
-			alphaMode: "opaque"
+			alphaMode: "premultiplied"
 		}), this.glass = Dc(this.gpu, ol, {
 			label: "Datavant / refractive glass",
 			set: jl(1, 1, this.state.time)
@@ -7642,7 +7644,7 @@ var Ml = class {
 	}
 	resize = () => {
 		if (!this.output || this.disposed) return;
-		let { width: e, height: t } = this.canvas.getBoundingClientRect(), n = Math.min(devicePixelRatio || 1, 1.75);
+		let { width: e, height: t } = this.canvas.getBoundingClientRect(), n = Math.min(devicePixelRatio || 1, this.dprCap);
 		this.output.resize([Math.max(1, Math.round(e * n)), Math.max(1, Math.round(t * n))]), this.glass.set({ params: { resolution: this.output.size } }), this.invalidate();
 	};
 	connectInput() {
@@ -7679,7 +7681,7 @@ var Ml = class {
 	tick = (e) => {
 		if (this.raf = 0, this.disposed) return;
 		let t = this.previous ? Math.min((e - this.previous) / 1e3, .06) : 0;
-		if (this.previous = e, this.exporting) {
+		if (this.previous = e, this.state.playing && t > 0 && (this.emaDt = this.emaDt ? this.emaDt * .95 + t * .05 : t, this.state.frames > 90 && this.emaDt > .03 && this.dprCap > 1.2 && (this.dprCap -= .25, this.emaDt = 0, this.resize())), this.exporting) {
 			this.schedule();
 			return;
 		}
