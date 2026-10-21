@@ -7609,7 +7609,7 @@ var Ml = class {
 	dirty = !0;
 	exporting = !1;
 	reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
-	dprCap = 1.5;
+	dprCap = 1;
 	emaDt = 0;
 	constructor(e, t, n, r = !0) {
 		this.canvas = e, this.onError = t, this.onPlaybackChange = n, this.interactive = r;
@@ -7681,7 +7681,7 @@ var Ml = class {
 	tick = (e) => {
 		if (this.raf = 0, this.disposed) return;
 		let t = this.previous ? Math.min((e - this.previous) / 1e3, .06) : 0;
-		if (this.previous = e, this.state.playing && t > 0 && (this.emaDt = this.emaDt ? this.emaDt * .95 + t * .05 : t, this.state.frames > 90 && this.emaDt > .03 && this.dprCap > 1.2 && (this.dprCap -= .25, this.emaDt = 0, this.resize())), this.exporting) {
+		if (this.previous = e, this.state.playing && t > 0 && (this.emaDt = this.emaDt ? this.emaDt * .95 + t * .05 : t, this.state.frames > 30 && this.emaDt > .028 && this.dprCap > .8 && (this.dprCap -= .3, this.emaDt = 0, this.resize())), this.exporting) {
 			this.schedule();
 			return;
 		}
@@ -7793,7 +7793,9 @@ async function Nl(e) {
 			let n = e.clientX / innerWidth * 2 - 1, a = e.clientY / innerHeight * 2 - 1;
 			t.setPoseTarget(n * .03 * r.parallax, a * .022 * r.parallax);
 		}));
-	}, { passive: !0 }), window.addEventListener("pagehide", () => t.dispose(), { once: !0 }), t;
+	}, { passive: !0 }), new IntersectionObserver((e) => {
+		t.setPlaying(e[0].isIntersecting && !n.matches);
+	}, { threshold: 0 }).observe(e), window.addEventListener("pagehide", () => t.dispose(), { once: !0 }), t;
 }
 //#endregion
 export { Nl as mountGlass };
