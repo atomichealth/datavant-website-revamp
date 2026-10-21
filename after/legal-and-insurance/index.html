@@ -544,11 +544,11 @@ header.main.dv-nav-dark .main-nav__cta.dv-ctav-2{border-color:transparent!import
 .main-nav__cta.dv-ctav-3{background:#14e7e8!important;color:var(--ink)!important}
 .main-nav__cta.dv-ctav-3:hover{background:#2cf0f1!important}
 /* text roll */
-.dv-ctav .dv-cta-roll{position:relative;display:inline-block;overflow:hidden;z-index:3}
+.dv-ctav .dv-cta-roll{position:relative;display:inline-block;overflow:visible;z-index:3}
 .dv-ctav .dv-roll-a,.dv-ctav .dv-roll-b{display:inline-block;white-space:nowrap;backface-visibility:hidden;transition:transform .5s cubic-bezier(.76,0,.24,1),opacity .3s ease}
 .dv-ctav .dv-roll-a{transform-origin:center top}
-.dv-ctav .dv-roll-b{position:absolute;left:0;top:0;transform:translateY(100%);opacity:1;transform-origin:center bottom}
-.dv-ctav:hover .dv-roll-a{transform:translateY(-100%)}
+.dv-ctav .dv-roll-b{position:absolute;left:0;top:0;transform:translateY(calc(100% + 14px));opacity:1;transform-origin:center bottom}
+.dv-ctav:hover .dv-roll-a{transform:translateY(calc(-100% - 14px))}
 .dv-ctav:hover .dv-roll-b{transform:none;opacity:1}
 @media (prefers-reduced-motion: reduce){.dv-ctav .dv-roll-a,.dv-ctav .dv-roll-b{transition:none}}
 /* variant switcher: appears under the CTA on hover */
@@ -920,6 +920,13 @@ html .primary-button.w-button:hover{background-color:#2b2b2b!important}
 .industry-hero__button-text,.industry-solutions__bar-button-text,.industry-related-resources__button-text{display:inline-flex!important;align-items:center!important;line-height:1!important}
 .dv-tr{vertical-align:middle}
 .dv-tr .dv-tr-l{line-height:1.3}
+
+/* roll-up travel: clip at the button edge, not the text box */
+.btn-container .primary-button,.banner-cta__btn,.industry-hero__button,.industry-solutions__bar-button,.industry-related-resources__button{overflow:hidden!important}
+.dv-tr{overflow:visible}
+.dv-tr-l+.dv-tr-l{top:calc(100% + 18px)}
+:is(a,button):hover .dv-tr .dv-tr-l{transform:translateY(calc(-100% - 18px))}
+.main-nav__cta.dv-ctav{overflow:hidden!important}
 
 /* responsive */
 @media(max-width:991px){.home-hero-content-header{font-size:48px!important}}
