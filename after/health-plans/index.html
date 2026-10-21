@@ -881,6 +881,10 @@ html .primary-button.w-button:hover{background-color:#2b2b2b!important}
 :is(a,button):hover .dv-tr .dv-tr-l{transform:translateY(calc(-100% - 18px))}
 .main-nav__cta.dv-ctav{overflow:hidden!important}
 
+/* nav CTA: fade with the dark-glass switch instead of snapping */
+header.main .main-nav__cta.dv-ctav{transition:background-color .35s ease,border-color .35s ease,box-shadow .35s ease!important}
+header.main .main-nav__cta.dv-ctav .dv-cta-label{transition:color .35s ease}
+
 /* responsive */
 @media(max-width:991px){.home-hero-content-header{font-size:48px!important}}
 @media(max-width:479px){
