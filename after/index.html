@@ -535,7 +535,7 @@ header.main{animation:dvBarIn .5s cubic-bezier(.22,1,.36,1) .32s both!important}
 .main-nav__cta.dv-ctav::before{display:none}
 /* v1: solid ink pill */
 .main-nav__cta.dv-ctav-1{background:#0b1220!important;color:#fff!important}
-.main-nav__cta.dv-ctav-1:hover{background:#000!important}
+.main-nav__cta.dv-ctav-1:hover{background:#2b2b2b!important}
 header.main.dv-nav-dark .main-nav__cta.dv-ctav-1{background:#fff!important;color:var(--ink)!important}
 /* v2: white pill, hairline border (Submit reference) */
 .main-nav__cta.dv-ctav-2{background:#fff!important;color:var(--ink)!important;border-color:rgba(0,0,0,.16)!important}
@@ -546,10 +546,10 @@ header.main.dv-nav-dark .main-nav__cta.dv-ctav-2{border-color:transparent!import
 .main-nav__cta.dv-ctav-3:hover{background:#2cf0f1!important}
 /* text roll */
 .dv-ctav .dv-cta-roll{position:relative;display:inline-block;overflow:hidden;z-index:3}
-.dv-ctav .dv-roll-a,.dv-ctav .dv-roll-b{display:inline-block;white-space:nowrap;backface-visibility:hidden;transition:transform .42s cubic-bezier(.22,1,.36,1),opacity .3s ease}
+.dv-ctav .dv-roll-a,.dv-ctav .dv-roll-b{display:inline-block;white-space:nowrap;backface-visibility:hidden;transition:transform .5s cubic-bezier(.76,0,.24,1),opacity .3s ease}
 .dv-ctav .dv-roll-a{transform-origin:center top}
-.dv-ctav .dv-roll-b{position:absolute;left:0;top:0;transform:translateY(115%) rotateX(-62deg);opacity:0;transform-origin:center bottom}
-.dv-ctav:hover .dv-roll-a{transform:translateY(-115%) rotateX(62deg);opacity:0}
+.dv-ctav .dv-roll-b{position:absolute;left:0;top:0;transform:translateY(100%);opacity:1;transform-origin:center bottom}
+.dv-ctav:hover .dv-roll-a{transform:translateY(-100%)}
 .dv-ctav:hover .dv-roll-b{transform:none;opacity:1}
 @media (prefers-reduced-motion: reduce){.dv-ctav .dv-roll-a,.dv-ctav .dv-roll-b{transition:none}}
 /* variant switcher: appears under the CTA on hover */
@@ -667,8 +667,16 @@ aside.pre-header:hover .dv-ph-switch,.dv-ph-switch:hover{opacity:1;visibility:vi
 .primary-button:hover span{color:#fff!important}
 
 /* learn more hover: beat theme's nested &:hover cyan (it desugars to .home-hero-section .btn-container .primary-button.w-button:hover = 0,5,0) */
-html .primary-button.w-button:hover,html .btn-container .primary-button.w-button:hover,html .home-hero-section .btn-container .primary-button.w-button:hover{background-color:#000!important;background-image:none!important;color:#fff!important;border-color:#000!important;filter:none!important}
+html .primary-button.w-button:hover,html .btn-container .primary-button.w-button:hover,html .home-hero-section .btn-container .primary-button.w-button:hover{background-color:#2b2b2b!important;background-image:none!important;color:#fff!important;border-color:#000!important;filter:none!important}
 html .primary-button.w-button:hover span,html .home-hero-section .btn-container .primary-button.w-button:hover span{color:#fff!important}
+
+/* intent-style label roll-up on primary buttons */
+.dv-tr{position:relative;display:inline-block;overflow:hidden;vertical-align:baseline}
+.dv-tr-l{display:block;white-space:nowrap;transition:transform .5s cubic-bezier(.76,0,.24,1)}
+.dv-tr-l+.dv-tr-l{position:absolute;left:0;top:100%;width:100%}
+:is(a,button):hover .dv-tr .dv-tr-l{transform:translateY(-100%)}
+
+.banner-cta__btn:hover{background:#2b2b2b!important}
 
 /* responsive */
 @media(max-width:991px){.home-hero-content-header{font-size:48px!important}}
@@ -6947,6 +6955,28 @@ html .primary-button.w-button:hover span,html .home-hero-section .btn-container 
       var input = panel.querySelector('input[data-k="' + d[0] + '"]');
       input.value = d[5];
       apply(d[0], d[5]);
+    });
+  });
+})();
+</script>
+<script>
+(function(){
+  var SEL = ['.btn-container .primary-button > span', '.banner-cta__btn > span',
+    '.industry-hero__button-text', '.industry-solutions__bar-button-text', '.industry-related-resources__button-text'];
+  SEL.forEach(function(sel){
+    document.querySelectorAll(sel).forEach(function(el){
+      if (el.dataset.dvTr || el.querySelector('svg')) return;
+      el.dataset.dvTr = '1';
+      var wrap = document.createElement('span');
+      wrap.className = 'dv-tr';
+      var a = document.createElement('span');
+      a.className = 'dv-tr-l';
+      while (el.firstChild) a.appendChild(el.firstChild);
+      var b = a.cloneNode(true);
+      b.setAttribute('aria-hidden', 'true');
+      wrap.appendChild(a);
+      wrap.appendChild(b);
+      el.appendChild(wrap);
     });
   });
 })();
