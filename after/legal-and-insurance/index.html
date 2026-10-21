@@ -1209,7 +1209,8 @@ html .primary-button.w-button:hover span,html .home-hero-section .btn-container 
     ['rot', 'Rotation', -360, 360, 1, -148],
     ['ax', 'Position X', -800, 800, 5, 0],
     ['ay', 'Position Y', -800, 800, 5, 0],
-    ['as', 'Scale', 0.4, 2, 0.02, 1]
+    ['as', 'Scale', 0.4, 2, 0.02, 1],
+    ['az', 'Zoom', 0.3, 2.5, 0.02, 1]
   ];
   var html = '<h4>Hero graphic \u00b7 controls</h4>';
   DEFS.forEach(function(d){
@@ -1221,9 +1222,9 @@ html .primary-button.w-button:hover span,html .home-hero-section .btn-container 
   document.body.appendChild(btn);
   document.body.appendChild(panel);
   btn.addEventListener('click', function(){ panel.classList.toggle('open'); });
-  var state = { rot: -148, ax: 0, ay: 0, as: 1 };
+  var state = { rot: -148, ax: 0, ay: 0, as: 1, az: 1 };
   function render(){
-    art.style.transform = 'translate(calc(-50% + ' + state.ax + 'px), calc(-50% + ' + state.ay + 'px)) rotate(' + state.rot + 'deg) scaleY(-1) scale(' + state.as + ')';
+    art.style.transform = 'translate(calc(-50% + ' + state.ax + 'px), calc(-50% + ' + state.ay + 'px)) rotate(' + state.rot + 'deg) scaleY(-1) scale(' + (state.as * state.az) + ')';
   }
   panel.addEventListener('input', function(e){
     var t = e.target;
