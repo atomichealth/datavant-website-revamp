@@ -6655,7 +6655,7 @@ html .primary-button.w-button:hover span,html .home-hero-section .btn-container 
       p.parentNode.appendChild(clone);
       var total = L + PULSE;
       clone.animate(
-        [{strokeDashoffset: startsAtTop ? 0 : -total}, {strokeDashoffset: startsAtTop ? -total : 0}],
+        [{strokeDashoffset: startsAtTop ? -total : 0}, {strokeDashoffset: startsAtTop ? 0 : -total}],
         {duration: 2400 + (idx % 5) * 320, delay: (idx % 7) * 260, iterations: Infinity, easing: 'linear'}
       );
       idx++;
