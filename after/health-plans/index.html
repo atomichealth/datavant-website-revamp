@@ -897,6 +897,9 @@ header.main.dv-nav-dark .main-nav__cta.dv-ctav-1:hover{background:#ececec!import
 /* prototype decided: hide utility-bar color swatches */
 .dv-ph-switch{display:none!important}
 
+/* events: eased bottom scrim for text legibility (black fading upward) */
+.upcoming-events__card::before{background:linear-gradient(180deg,rgba(0,0,0,.10) 0%,rgba(0,0,0,0) 28%,rgba(0,0,0,0) 50%,rgba(0,0,0,.14) 66%,rgba(0,0,0,.34) 82%,rgba(0,0,0,.58) 100%)!important}
+
 /* responsive */
 @media(max-width:991px){.home-hero-content-header{font-size:48px!important}}
 @media(max-width:479px){
