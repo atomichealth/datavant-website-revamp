@@ -7609,8 +7609,8 @@ var Ml = class {
 	dirty = !0;
 	exporting = !1;
 	reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
-	dprStart = 1.25;
-	dprCap = 1.25;
+	dprStart = 2;
+	dprCap = 2;
 	badFrames = 0;
 	goodFrames = 0;
 	cooldown = 0;
@@ -7684,7 +7684,7 @@ var Ml = class {
 	tick = (e) => {
 		if (this.raf = 0, this.disposed) return;
 		let t = this.previous ? Math.min((e - this.previous) / 1e3, .06) : 0;
-		if (this.previous = e, this.state.playing && t > 0 && this.state.frames > 180 && (this.cooldown > 0 ? this.cooldown-- : t > .04 ? (this.badFrames++, this.goodFrames = 0, this.badFrames > 45 && this.dprCap > .9 && (this.dprCap = Math.max(.9, this.dprCap - .25), this.badFrames = 0, this.cooldown = 30, this.resize())) : (this.badFrames = 0, t < .02 ? (this.goodFrames++, this.goodFrames > 240 && this.dprCap < this.dprStart && (this.dprCap = Math.min(this.dprStart, this.dprCap + .25), this.goodFrames = 0, this.cooldown = 30, this.resize())) : this.goodFrames = 0)), this.exporting) {
+		if (this.previous = e, this.state.playing && t > 0 && this.state.frames > 180 && (this.cooldown > 0 ? this.cooldown-- : t > .04 ? (this.badFrames++, this.goodFrames = 0, this.badFrames > 45 && this.dprCap > 1.2 && (this.dprCap = Math.max(1.2, this.dprCap - .25), this.badFrames = 0, this.cooldown = 30, this.resize())) : (this.badFrames = 0, t < .02 ? (this.goodFrames++, this.goodFrames > 240 && this.dprCap < this.dprStart && (this.dprCap = Math.min(this.dprStart, this.dprCap + .25), this.goodFrames = 0, this.cooldown = 30, this.resize())) : this.goodFrames = 0)), this.exporting) {
 			this.schedule();
 			return;
 		}
