@@ -879,6 +879,9 @@ html .primary-button.w-button:hover span,html .home-hero-section .btn-container 
 /* related cards: same light gray hairline as the rest */
 .industry-related-resources__card{border:1px solid rgba(11,18,32,.08)!important}
 
+/* hero art: baked composition (tuned via panel) */
+.industry-hero--legal-insurance .industry-hero__art{transform:translate(calc(-50% - 200px), calc(-50% - 350px)) rotate(-158deg) scaleY(-1)!important}
+
 /* responsive */
 @media(max-width:991px){.home-hero-content-header{font-size:48px!important}}
 @media(max-width:479px){
@@ -1206,9 +1209,9 @@ html .primary-button.w-button:hover span,html .home-hero-section .btn-container 
   var panel = document.createElement('div');
   panel.className = 'dv-art-panel';
   var DEFS = [
-    ['rot', 'Rotation', -360, 360, 1, -148],
-    ['ax', 'Position X', -800, 800, 5, 0],
-    ['ay', 'Position Y', -800, 800, 5, 0],
+    ['rot', 'Rotation', -360, 360, 1, -158],
+    ['ax', 'Position X', -800, 800, 5, -200],
+    ['ay', 'Position Y', -800, 800, 5, -350],
     ['as', 'Scale', 0.4, 2, 0.02, 1],
     ['az', 'Zoom', 0.3, 2.5, 0.02, 1]
   ];
@@ -1222,7 +1225,7 @@ html .primary-button.w-button:hover span,html .home-hero-section .btn-container 
   document.body.appendChild(btn);
   document.body.appendChild(panel);
   btn.addEventListener('click', function(){ panel.classList.toggle('open'); });
-  var state = { rot: -148, ax: 0, ay: 0, as: 1, az: 1 };
+  var state = { rot: -158, ax: -200, ay: -350, as: 1, az: 1 };
   function render(){
     art.style.transform = 'translate(calc(-50% + ' + state.ax + 'px), calc(-50% + ' + state.ay + 'px)) rotate(' + state.rot + 'deg) scaleY(-1) scale(' + (state.as * state.az) + ')';
   }
