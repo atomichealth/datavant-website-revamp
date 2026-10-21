@@ -845,6 +845,12 @@ html .primary-button.w-button:hover span,html .home-hero-section .btn-container 
 .industry-solutions .industry-solutions__card:hover .industry-solutions__card-link{color:var(--ink)!important;opacity:1!important}
 .industry-solutions .industry-solutions__card:hover .industry-solutions__card-arrow{background-color:var(--ink)!important}
 
+/* industry pages: scroll choreography parity with home */
+.dv-ind-anim .upcoming-events__card,.dv-ind-anim .testimonial-cards__card{opacity:0;transform:translateY(24px);transition:opacity .75s ease,transform .75s cubic-bezier(.22,1,.36,1)}
+.dv-ind-anim .upcoming-events__card.dv-in,.dv-ind-anim .testimonial-cards__card.dv-in{opacity:1!important;transform:none!important}
+.dv-ind-anim .industry-solutions__bar{opacity:0;transform:translateY(18px);transition:opacity .8s ease,transform .8s cubic-bezier(.22,1,.36,1)}
+.dv-ind-anim .industry-solutions__bar.dv-in{opacity:1!important;transform:none!important}
+
 /* responsive */
 @media(max-width:991px){.home-hero-content-header{font-size:48px!important}}
 @media(max-width:479px){
@@ -1172,4 +1178,77 @@ html .primary-button.w-button:hover span,html .home-hero-section .btn-container 
 })();
 </script>
 
+<script>
+(function(){
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduced || !('IntersectionObserver' in window)) return;
+  document.body.classList.add('dv-ind-anim');
+
+  /* word-by-word reveal on module titles (same as home) */
+  var TITLES = ['.industry-solutions__title', '.upcoming-events__title', '.testimonial-cards__title'];
+  function splitWords(el){
+    var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+    var nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(function(tn){
+      if (!tn.nodeValue.trim()) return;
+      var frag = document.createDocumentFragment();
+      tn.nodeValue.split(/(\s+)/).forEach(function(part){
+        if (!part) return;
+        if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(part)); return; }
+        var sp = document.createElement('span');
+        sp.className = 'dv-w';
+        sp.textContent = part;
+        frag.appendChild(sp);
+      });
+      tn.parentNode.replaceChild(frag, tn);
+    });
+  }
+  var tio = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if (!en.isIntersecting) return;
+      tio.unobserve(en.target);
+      en.target.querySelectorAll('.dv-w').forEach(function(sp, i){
+        setTimeout(function(){ sp.classList.add('dv-w-in'); }, i*60);
+      });
+    });
+  }, {threshold: 0, rootMargin: '0px 0px -30% 0px'});
+  TITLES.forEach(function(sel){
+    document.querySelectorAll(sel).forEach(function(el){
+      if (el.classList.contains('dv-wsplit')) return;
+      splitWords(el);
+      el.classList.add('dv-wsplit');
+      tio.observe(el);
+    });
+  });
+
+  /* staggered card cascades + bar entrance */
+  function cascade(containerSel, itemSel, stagger){
+    document.querySelectorAll(containerSel).forEach(function(box){
+      var items = box.querySelectorAll(itemSel);
+      if (!items.length) return;
+      var io = new IntersectionObserver(function(entries){
+        entries.forEach(function(en){
+          if (!en.isIntersecting) return;
+          io.disconnect();
+          items.forEach(function(c, i){
+            setTimeout(function(){ c.classList.add('dv-in'); }, i * stagger);
+          });
+        });
+      }, {threshold: 0, rootMargin: '0px 0px -25% 0px'});
+      io.observe(box);
+    });
+  }
+  cascade('.upcoming-events__grid', '.upcoming-events__card', 140);
+  cascade('.testimonial-cards__track', '.testimonial-cards__card', 120);
+  document.querySelectorAll('.industry-solutions__bar').forEach(function(bar){
+    var io = new IntersectionObserver(function(en){
+      if (!en[0].isIntersecting) return;
+      io.disconnect();
+      bar.classList.add('dv-in');
+    }, {threshold: 0, rootMargin: '0px 0px -20% 0px'});
+    io.observe(bar);
+  });
+})();
+</script>
 </body></html>
