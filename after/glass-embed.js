@@ -7025,7 +7025,8 @@ var ll = class {
 	dirty = !0;
 	exporting = !1;
 	reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
-	dprCap = 1.5;
+	dprStart = 2;
+	dprCap = 2;
 	emaDt = 0;
 	constructor(e, t, n, r = !0) {
 		this.canvas = e, this.onError = t, this.onPlaybackChange = n, this.interactive = r;
@@ -7097,7 +7098,7 @@ var ll = class {
 	tick = (e) => {
 		if (this.raf = 0, this.disposed) return;
 		let t = this.previous ? Math.min((e - this.previous) / 1e3, .06) : 0;
-		if (this.previous = e, this.state.playing && t > 0 && (this.emaDt = this.emaDt ? this.emaDt * .95 + t * .05 : t, this.state.frames > 30 && this.emaDt > .028 && this.dprCap > .8 && (this.dprCap -= .3, this.emaDt = 0, this.resize())), this.exporting) {
+		if (this.previous = e, this.state.playing && t > 0 && (this.emaDt = this.emaDt ? this.emaDt * .95 + t * .05 : t, this.state.frames > 180 && (this.emaDt > .034 && this.dprCap > 1.3 ? (this.dprCap = Math.max(1.3, this.dprCap - .25), this.emaDt = 0, this.resize()) : this.emaDt < .017 && this.dprCap < this.dprStart && (this.dprCap = Math.min(this.dprStart, this.dprCap + .25), this.emaDt = 0, this.resize()))), this.exporting) {
 			this.schedule();
 			return;
 		}
