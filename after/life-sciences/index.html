@@ -872,6 +872,13 @@ html .primary-button.w-button:hover span,html .home-hero-section .btn-container 
 /* related cards: same light gray hairline as the rest */
 .industry-related-resources__card{border:1px solid rgba(11,18,32,.08)!important}
 
+/* solutions cards: text identical on hover (kill theme var flips + link dim) */
+.industry-solutions__card-text li{color:var(--body)!important}
+.industry-solutions .industry-solutions__card:hover .industry-solutions__card-title{color:var(--ink)!important}
+.industry-solutions .industry-solutions__card:hover .industry-solutions__card-text,.industry-solutions .industry-solutions__card:hover .industry-solutions__card-text p,.industry-solutions .industry-solutions__card:hover .industry-solutions__card-text li{color:var(--body)!important}
+.industry-solutions .industry-solutions__card:hover .industry-solutions__card-link{color:var(--ink)!important;opacity:1!important}
+.industry-solutions .industry-solutions__card:hover .industry-solutions__card-arrow{background-color:var(--ink)!important}
+
 /* responsive */
 @media(max-width:991px){.home-hero-content-header{font-size:48px!important}}
 @media(max-width:479px){
