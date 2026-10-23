@@ -925,7 +925,20 @@ header.main.dv-nav-dark .main-nav__cta.dv-ctav-1:hover{background:#ececec!import
 /* prototype decided: hide press-bar variant and color selectors */
 .dv-ann-switch,.dv-ann-colors{display:none!important}
 
+/* mobile nav drawer (≤992px): solid header while open so the fixed drawer
+   escapes the backdrop-filter containing block; datavant.com-style layout */
+@media only screen and (max-width:992px){
+  html.open header.main,html.open header.main.dv-nav-dark{background:#fff!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important}
+  html.open header.main,html.dv-settled header.main{animation:none!important;transform:none!important}
+  .pre-header{display:none!important}
+  html.open header.main.dv-nav-dark .main-nav__link,html.open header.main.dv-nav-dark .main-nav__trigger,html.open header.main.dv-nav-dark .main-nav__item--has-panel.is-open>.main-nav__trigger{color:#020202!important}
+  html.open header.main.dv-nav-dark .toggle__bar{background:#020202!important}
+  html.open header.main.dv-nav-dark .logo,html.open header.main.dv-nav-dark .header-brand__section{color:#020202!important;filter:none!important}
+  html #nav.main-nav .main-nav__cta.dv-ctav{display:flex!important;width:100%!important;justify-content:center!important;min-height:49px;margin-top:16px}
+  html.open .dv-glass-panel-btn,html.open .dv-glass-panel,html.open .dv-coil-panel-btn,html.open .dv-coil-panel,html.open .dv-hex-panel-btn,html.open .dv-hex-panel,html.open .dv-silk-panel-btn,html.open .dv-silk-panel,html.open .dv-art-panel-btn,html.open .dv-art-panel{display:none!important}
+}
 /* responsive */
+
 @media(max-width:991px){.home-hero-content-header{font-size:48px!important}}
 @media(max-width:479px){
   .home-hero-content-header{font-size:40px!important}
@@ -1403,6 +1416,29 @@ header.main.dv-nav-dark .main-nav__cta.dv-ctav-1:hover{background:#ececec!import
       el.appendChild(wrap);
     });
   });
+})();
+</script>
+<script>
+(function(){
+  var t = document.getElementById('toggle');
+  var hdr = document.querySelector('header.main');
+  if (!t || !hdr) return;
+  function setTop(){
+    if (!t.checked) return;
+    var b = Math.max(0, Math.round(hdr.getBoundingClientRect().bottom));
+    document.documentElement.style.setProperty('--dv-drawer-top', b + 'px');
+  }
+  function settle(){
+    setTop();
+    requestAnimationFrame(setTop);
+    setTimeout(setTop, 300);
+    setTimeout(setTop, 900);
+  }
+  t.addEventListener('change', function(){
+    document.documentElement.classList.add('dv-settled');
+    settle();
+  });
+  window.addEventListener('resize', setTop, {passive:true});
 })();
 </script>
 </body></html>
