@@ -730,6 +730,12 @@ html .btn-container .primary-button.w-button{padding:15px 28px!important;font-si
   .home-hero-section.home-v2{padding-top:0!important}
   .home-hero-section .home-hero-content-wrapper{position:relative;z-index:1;padding-top:150px}
 }
+/* mobile wws icon tabs: one row, horizontal scroll bleeding past the viewport edge */
+@media only screen and (max-width:992px){
+  .dv2-nav{flex-wrap:nowrap!important;justify-content:flex-start!important;gap:40px!important;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);padding-left:28px;padding-right:28px;scroll-snap-type:x proximity;scroll-padding-left:28px}
+  .dv2-nav::-webkit-scrollbar{display:none}
+  .dv2-tab{flex:0 0 auto;scroll-snap-align:start;white-space:nowrap}
+}
 /* responsive */
 
 @media(max-width:991px){.home-hero-content-header{font-size:48px!important}}
